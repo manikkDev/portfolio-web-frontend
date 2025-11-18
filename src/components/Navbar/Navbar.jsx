@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useTheme } from '../../hooks/useTheme';
 import './Navbar.css';
@@ -11,7 +11,7 @@ const Navbar = () => {
   const [isCompact, setIsCompact] = useState(false);
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setIsMobileMenuOpen((v) => !v);
   };
 
   useEffect(() => {
@@ -24,6 +24,9 @@ const Navbar = () => {
 
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
+    try {
+      document.body.classList.toggle('menu-open', !!isMobileMenuOpen);
+    } catch (e) { void e }
     const onKey = (e) => {
       if (e.key === 'Escape') setIsMobileMenuOpen(false);
     };
@@ -59,6 +62,21 @@ const Navbar = () => {
       transition: { duration: 0.2, ease: "easeInOut" }
     },
     tap: { scale: 0.95 }
+  };
+
+  const topLine = {
+    closed: { rotate: 0, y: 0, backgroundColor: 'var(--current-text-primary)', boxShadow: '0 0 0 rgba(0,0,0,0)' },
+    open: { rotate: 45, y: 7, backgroundColor: '#ff00ff', boxShadow: '0 0 8px rgba(255,0,255,0.6)' }
+  };
+
+  const midLine = {
+    closed: { opacity: 1, backgroundColor: 'var(--current-text-primary)' },
+    open: { opacity: 0 }
+  };
+
+  const botLine = {
+    closed: { rotate: 0, y: 0, backgroundColor: 'var(--current-text-primary)', boxShadow: '0 0 0 rgba(0,0,0,0)' },
+    open: { rotate: -45, y: -7, backgroundColor: '#ff00ff', boxShadow: '0 0 8px rgba(255,0,255,0.6)' }
   };
 
   
@@ -178,46 +196,40 @@ const Navbar = () => {
           <motion.button 
             className={`menu-toggle ${isMobileMenuOpen ? 'open' : ''}`}
             onClick={toggleMobileMenu}
+            type="button"
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
             aria-controls="menu-overlay"
             whileHover={{ scale: 1.06, rotate: isMobileMenuOpen ? 0 : 2 }}
             whileTap={{ scale: 0.95 }}
           >
-            <motion.span animate={{ rotate: isMobileMenuOpen ? 45 : 0, y: isMobileMenuOpen ? 7 : 0 }} />
-            <motion.span animate={{ opacity: isMobileMenuOpen ? 0 : 1 }} />
-            <motion.span animate={{ rotate: isMobileMenuOpen ? -45 : 0, y: isMobileMenuOpen ? -7 : 0 }} />
+            <motion.span variants={topLine} animate={isMobileMenuOpen ? 'open' : 'closed'} transition={{ duration: 0.22 }} />
+            <motion.span variants={midLine} animate={isMobileMenuOpen ? 'open' : 'closed'} transition={{ duration: 0.18 }} />
+            <motion.span variants={botLine} animate={isMobileMenuOpen ? 'open' : 'closed'} transition={{ duration: 0.22 }} />
           </motion.button>
         </motion.div>
       </div>
 
-      <AnimatePresence>
-        {isMobileMenuOpen && createPortal(
-          (
-            <motion.nav
-              id="menu-overlay"
-              role="navigation"
-              aria-label="Mobile"
-              className="menu-overlay"
-              initial={{ opacity: 0, y: -24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -24 }}
-              transition={{ duration: 0.28, ease: 'easeOut' }}
-              style={{ top: 0, zIndex: 2147483646 }}
-            >
-              <motion.a href="#home" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>Home</span></motion.a>
-              <motion.a href="#about" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>About</span></motion.a>
-              <motion.a href="#experience" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>Experience</span></motion.a>
-              <motion.a href="#projects" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>Projects</span></motion.a>
-              <motion.a href="#skills-bottom" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>Skills</span></motion.a>
-              <motion.a href="#youtube" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>YouTube</span></motion.a>
-              <motion.a href="#linkedin-posts" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>Blog</span></motion.a>
-              <motion.a href="#contact" className="overlay-link" onClick={toggleMobileMenu} whileHover={{ x: 10 }} whileTap={{ scale: 0.95 }}><span>Contact</span></motion.a>
-            </motion.nav>
-          ),
-          document.body
-        )}
-      </AnimatePresence>
+      {createPortal(
+        (
+          <nav
+            id="mobile-menu"
+            role="navigation"
+            aria-label="Mobile"
+            className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}
+          >
+            <a href="#home" className="mobile-link" onClick={toggleMobileMenu}><span>Home</span></a>
+            <a href="#about" className="mobile-link" onClick={toggleMobileMenu}><span>About</span></a>
+            <a href="#experience" className="mobile-link" onClick={toggleMobileMenu}><span>Experience</span></a>
+            <a href="#projects" className="mobile-link" onClick={toggleMobileMenu}><span>Projects</span></a>
+            <a href="#skills-bottom" className="mobile-link" onClick={toggleMobileMenu}><span>Skills</span></a>
+            <a href="#youtube" className="mobile-link" onClick={toggleMobileMenu}><span>YouTube</span></a>
+            <a href="#linkedin-posts" className="mobile-link" onClick={toggleMobileMenu}><span>Blog</span></a>
+            <a href="#contact" className="mobile-link" onClick={toggleMobileMenu}><span>Contact</span></a>
+          </nav>
+        ),
+        document.body
+      )}
     </motion.nav>
   );
 };

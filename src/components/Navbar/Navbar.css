@@ -641,7 +641,7 @@ body.dark .mobile-link:hover {
     width: clamp(28px, 6vw, 36px);
     height: clamp(28px, 6vw, 36px);
     padding: clamp(3px, 1vw, 5px);
-    }
+  }
 
   .mobile-menu-btn span {
     height: clamp(2px, 0.5vw, 2.5px);
@@ -676,12 +676,40 @@ body.dark .mobile-link:hover {
 
 /* Compact controls for small phones */
 @media (max-width: 640px) {
-  .navbar-actions { gap: clamp(6px, 2vw, 10px); }
-  .theme-toggle { padding: 0; border-radius: 16px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); }
-  .toggle-track { width: 34px; height: 18px; border-color: rgba(255,255,255,0.18); }
-  .toggle-thumb { width: 14px; height: 14px; top: 2px; left: 2px; font-size: 8px; }
-  .mobile-menu-btn { width: 28px; height: 28px; padding: 3px; border-radius: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); }
-  .mobile-menu-btn span { height: 2px; background: var(--current-text-primary); box-shadow: none; }
+  .navbar-actions {
+    gap: clamp(6px, 2vw, 10px);
+  }
+  .theme-toggle {
+    padding: 0;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+  .toggle-track {
+    width: 34px;
+    height: 18px;
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+  .toggle-thumb {
+    width: 14px;
+    height: 14px;
+    top: 2px;
+    left: 2px;
+    font-size: 8px;
+  }
+  .mobile-menu-btn {
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  .mobile-menu-btn span {
+    height: 2px;
+    background: var(--current-text-primary);
+    box-shadow: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -750,12 +778,12 @@ body.dark .mobile-link:hover {
     height: clamp(40px, 6vw, 50px) !important;
     padding: clamp(8px, 1.5vw, 12px) 0 !important;
   }
-  
+
   .navbar-container {
     height: clamp(24px, 4vw, 32px);
     padding: 0 clamp(8px, 2vw, 16px);
   }
-  
+
   .navbar-logo {
     font-size: clamp(1rem, 4vw, 1.3rem);
   }
@@ -959,7 +987,7 @@ body.dark .navbar.scrolled {
 }
 /* Advanced Menu Toggle */
 .menu-toggle {
-  display: none;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   width: 36px;
@@ -1005,6 +1033,18 @@ body.dark .navbar.scrolled {
   gap: var(--spacing-md);
   overflow: hidden;
   z-index: 2147483646;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-24px);
+  transition: opacity 0.28s ease-out, transform 0.28s ease-out;
+}
+
+body.menu-open .menu-overlay {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .overlay-link {
@@ -1037,15 +1077,79 @@ body.dark .navbar.scrolled {
   z-index: 1;
 }
 
-.overlay-link:hover::before { width: 100%; opacity: 0.08; }
-.overlay-link:hover { color: #00ffff; background: rgba(0, 255, 255, 0.08); border-left-color: #00ffff; padding-left: calc(var(--spacing-xl) + var(--spacing-sm)); box-shadow: 0 0 15px rgba(0, 255, 255, 0.25), inset 0 0 15px rgba(0, 255, 255, 0.08); transform: translateX(6px); }
+.overlay-link:hover::before {
+  width: 100%;
+  opacity: 0.08;
+}
+.overlay-link:hover {
+  color: #00ffff;
+  background: rgba(0, 255, 255, 0.08);
+  border-left-color: #00ffff;
+  padding-left: calc(var(--spacing-xl) + var(--spacing-sm));
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.25),
+    inset 0 0 15px rgba(0, 255, 255, 0.08);
+  transform: translateX(6px);
+}
 
 @media (max-width: 1024px) {
-  .navbar-menu { display: none; }
-  .menu-toggle { display: flex; }
+  .navbar-menu {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
-  .menu-toggle { width: 32px; height: 32px; padding: 4px; border-radius: 8px; }
-  .menu-toggle span { height: 2px; }
+  .menu-toggle {
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    border-radius: 8px;
+  }
+  .menu-toggle span {
+    height: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-toggle {
+    width: 26px;
+    height: 26px;
+    padding: 3px;
+    border-radius: 8px;
+  }
+  .toggle-track {
+    width: 30px;
+    height: 16px;
+  }
+  .toggle-thumb {
+    width: 12px;
+    height: 12px;
+    top: 2px;
+    left: 2px;
+    font-size: 8px;
+  }
+  .theme-toggle {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .menu-toggle {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+  }
+  .toggle-track {
+    width: 28px;
+    height: 15px;
+  }
+  .toggle-thumb {
+    width: 11px;
+    height: 11px;
+  }
+  .theme-toggle {
+    width: 28px;
+    height: 28px;
+  }
 }

@@ -104,14 +104,14 @@ const Youtube = () => {
         v.src = url
         v.load()
       })
-      .catch(() => {})
+      .catch(() => null)
     return () => {
       if (!v) return
       try {
         v.pause()
         v.removeAttribute('src')
         v.load()
-      } catch {}
+      } catch (e) { void e }
       if (url) URL.revokeObjectURL(url)
     }
   }, [])
