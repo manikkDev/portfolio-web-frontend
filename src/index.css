@@ -433,6 +433,10 @@ html, body {
   max-width: 100vw;
 }
 
+section {
+  scroll-margin-top: clamp(50px, 8vw, 70px);
+}
+
 /* Enhanced responsiveness for problematic screen sizes */
 @media (min-width: 1180px) and (max-width: 1200px) {
   * {

@@ -1,13 +1,78 @@
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useInView, useMotionValue, useSpring, useAnimationControls } from 'framer-motion';
 import { useTheme } from '../../hooks/useTheme';
-import manikWithPcImage from '../../assets/manik-with-pc.jpg';
+import manikUnemployedImage from '../../assets/manik-unemployed.jpg';
+import employedManikImage from '../../assets/employed-manik.jpg';
 import './About.css';
 
 const About = () => {
   const { theme } = useTheme();
   const ref = useRef(null);
   const isInView = useInView(ref, { threshold: 0.1 });
+  const hudRef = useRef(null);
+  const mvX = useMotionValue(0);
+  const mvY = useMotionValue(0);
+  const sx = useSpring(mvX, { stiffness: 300, damping: 25 });
+  const sy = useSpring(mvY, { stiffness: 300, damping: 25 });
+  const REST_OFFSET_Y = 80;
+  const handleMove = (e) => {
+    const r = hudRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mvX.set(e.clientX - r.left);
+    mvY.set(e.clientY - r.top);
+  };
+  const handleLeave = () => {
+    const r = hudRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mvX.set(r.width / 2);
+    mvY.set(r.height / 2 + REST_OFFSET_Y);
+  };
+  const [shotId, setShotId] = useState(0);
+  const [hp, setHp] = useState(86);
+  const [ko, setKo] = useState(false);
+  const [imgSrc, setImgSrc] = useState(manikUnemployedImage);
+  // recoil handled by controls
+  const [revealed, setRevealed] = useState(false);
+  const recoilCtrl = useAnimationControls();
+  const danger = hp <= 25;
+  useEffect(() => {
+    const r = hudRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mvX.set(r.width / 2);
+    mvY.set(r.height / 2 + REST_OFFSET_Y);
+  }, [mvX, mvY]);
+  const handleShoot = () => {
+    setShotId((n) => n + 1);
+    recoilCtrl.start({
+      x: [0, -3, 3, -2, 2, 0],
+      rotateZ: [0, -0.8, 0.8, -0.4, 0.4, 0],
+      transition: { duration: 0.28, ease: 'easeOut' }
+    });
+    if (ko) return;
+    const next = Math.max(0, hp - 12);
+    if (next === 0 && !revealed) {
+      setHp(0);
+      setKo(true);
+      setTimeout(() => setImgSrc(employedManikImage), 600);
+      setTimeout(() => setKo(false), 1400);
+      setRevealed(true);
+    } else {
+      setHp(next);
+    }
+  };
+
+  const [shieldHp, setShieldHp] = useState([100, 100, 100]);
+  const [shieldPulse, setShieldPulse] = useState([0, 0, 0]);
+  const shieldRefs = useRef([]);
+  const onShieldClick = (i, e) => {
+    const el = shieldRefs.current[i];
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--sx', e.clientX - r.left + 'px');
+    el.style.setProperty('--sy', e.clientY - r.top + 'px');
+    setShieldPulse((p) => { const n = [...p]; n[i] = p[i] + 1; return n; });
+    setShieldHp((h) => { const n = [...h]; n[i] = Math.max(0, h[i] - 34); return n; });
+  };
 
   // Animation variants for scroll-triggered animations
   const containerVariants = {
@@ -70,77 +135,78 @@ const About = () => {
         <motion.div className="about-content" variants={containerVariants}>
           {/* Left Side - Image */}
           <motion.div className="about-image-section" variants={slideInLeft}>
-            <motion.div className="image-container" variants={scaleIn}>
+            <motion.div 
+              className="image-container"
+              variants={scaleIn}
+              style={{ perspective: 600 }}
+            >
               <div className="image-placeholder">
-                <motion.img 
-                  src={manikWithPcImage} 
-                  alt="Manik with PC" 
+                <motion.div className="img-recoil" animate={recoilCtrl}>
+                  <motion.img 
+                  src={imgSrc} 
+                  alt="Manik" 
                   className="about-image"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
+                  animate={{ 
+                    filter: danger ? 'brightness(0.9) saturate(1.1)' : 'none', 
+                    scale: ko ? 1.04 : 1
+                  }}
+                  transition={{ duration: 0.28, ease: 'easeInOut' }}
                 />
-                <div className="image-glow"></div>
-                <div className="gaming-overlay"></div>
+                </motion.div>
+                {ko && (
+                  <div className="reveal-overlay">
+                    <span className="bar" style={{ '--d': '0ms' }}></span>
+                    <span className="bar" style={{ '--d': '60ms' }}></span>
+                    <span className="bar" style={{ '--d': '120ms' }}></span>
+                    <span className="bar" style={{ '--d': '180ms' }}></span>
+                    <span className="bar" style={{ '--d': '240ms' }}></span>
+                    <span className="bar" style={{ '--d': '300ms' }}></span>
+                    <span className="bar" style={{ '--d': '360ms' }}></span>
+                    <span className="bar" style={{ '--d': '420ms' }}></span>
+                  </div>
+                )}
               </div>
-              <div className="floating-elements">
-                {/* Professional Gaming HUD Elements */}
-                <motion.div 
-                  className="hud-element terminal-window"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-                  transition={{ delay: 0.5, duration: 0.5 }}
-                >
-                  <div className="terminal-header">
-                    <div className="terminal-dots">
-                      <span></span><span></span><span></span>
-                    </div>
+              <div
+                className="game-hud"
+                ref={hudRef}
+                onMouseMove={handleMove}
+                onMouseLeave={handleLeave}
+                onClick={handleShoot}
+              >
+                <motion.div className="reticle" style={{ left: sx, top: sy }} animate={{ scale: danger ? 1.08 : 1 }} />
+                <motion.div className="shot-pulse" key={`pulse-${shotId}`} style={{ left: sx, top: sy }} initial={{ scale: 0, opacity: 0.8 }} animate={{ scale: 1.6, opacity: 0 }} transition={{ duration: 0.5 }} />
+                <motion.div className="shot-burst" key={`burst-${shotId}`} style={{ left: sx, top: sy }}>
+                  <span className="particle p1"></span>
+                  <span className="particle p2"></span>
+                  <span className="particle p3"></span>
+                  <span className="particle p4"></span>
+                  <span className="particle p5"></span>
+                  <span className="particle p6"></span>
+                  <span className="particle p7"></span>
+                  <span className="particle p8"></span>
+                </motion.div>
+                <motion.div className="hud-panel stats" variants={scaleIn} initial="hidden" animate={isInView ? 'visible' : 'hidden'}>
+                  <div className="stat">
+                    <span className="label">HP</span>
+                    <div className="bar"><span style={{ width: `${hp}%` }}></span></div>
+                    <span className="value">{hp}%</span>
                   </div>
-                  <div className="terminal-content">
-                    <span className="terminal-text">$ code --version</span>
-                    <div className="cursor-blink"></div>
+                  <div className="stat">
+                    <span className="label">AMMO</span>
+                    <div className="bar"><span style={{ width: '68%' }}></span></div>
+                    <span className="value">24</span>
+                  </div>
+                  <div className="stat">
+                    <span className="label">XP</span>
+                    <div className="bar"><span style={{ width: '72%' }}></span></div>
+                    <span className="value">72%</span>
                   </div>
                 </motion.div>
-                
-                <motion.div 
-                  className="hud-element code-panel"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-                  transition={{ delay: 0.7, duration: 0.5 }}
-                >
-                   <div className="code-lines">
-                     <div className="code-line">class Developer {'{'}</div>
-                     <div className="code-line">  skills: 'expert';</div>
-                     <div className="code-line">{'}'}</div>
-                   </div>
-                   <div className="syntax-highlight"></div>
-                 </motion.div>
-                
-                <motion.div 
-                  className="hud-element game-stats"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-                  transition={{ delay: 0.9, duration: 0.5 }}
-                >
-                  <div className="stat-bar">
-                    <div className="stat-label">EXP</div>
-                    <div className="stat-progress">
-                      <div className="stat-fill"></div>
-                    </div>
-                  </div>
-                  <div className="level-indicator">PRO</div>
+                <motion.div className="hud-panel loadout" variants={scaleIn} initial="hidden" animate={isInView ? 'visible' : 'hidden'}>
+                  <div className="slot active">AR</div>
+                  <div className="slot">SMG</div>
+                  <div className="slot">SNIPER</div>
                 </motion.div>
-                
-                {/* Interactive Glitch Particles */}
-                <div className="glitch-particles">
-                  <div className="glitch-particle" style={{"--delay": "0s", "--x": "20%", "--y": "30%"}}></div>
-                  <div className="glitch-particle" style={{"--delay": "2s", "--x": "80%", "--y": "60%"}}></div>
-                  <div className="glitch-particle" style={{"--delay": "4s", "--x": "60%", "--y": "20%"}}></div>
-                  <div className="glitch-particle" style={{"--delay": "6s", "--x": "30%", "--y": "80%"}}></div>
-                  <div className="glitch-particle" style={{"--delay": "8s", "--x": "70%", "--y": "40%"}}></div>
-                </div>
-                
-                {/* Digital Grid Overlay */}
-                
               </div>
             </motion.div>
           </motion.div>
@@ -167,10 +233,47 @@ const About = () => {
               <motion.div className="skills-container" variants={containerVariants}>
                 <motion.div className="skill-column" variants={scaleIn}>
                   <motion.div 
-                    className="skill-card"
+                    className={`skill-card ${shieldHp[0] === 0 ? 'unlocked' : 'locked'}`}
                     whileHover={{ scale: 1.05, y: -5 }}
                     transition={{ duration: 0.3 }}
                   >
+                    <div
+                      className={shieldHp[0] === 0 ? 'shield-overlay broken' : 'shield-overlay'}
+                      ref={(el) => (shieldRefs.current[0] = el)}
+                      style={{ opacity: shieldHp[0] / 100 }}
+                      onClick={(e) => onShieldClick(0, e)}
+                    >
+                      <div className="shield-shards">
+                        <span className="shard s1"></span>
+                        <span className="shard s2"></span>
+                        <span className="shard s3"></span>
+                        <span className="shard s4"></span>
+                        <span className="shard s5"></span>
+                        <span className="shard s6"></span>
+                        <span className="shard s7"></span>
+                        <span className="shard s8"></span>
+                        <span className="shard s9"></span>
+                        <span className="shard s10"></span>
+                        <span className="shard s11"></span>
+                        <span className="shard s12"></span>
+                      </div>
+                      <div className="shield-pulse" key={`sp-0-${shieldPulse[0]}`}></div>
+                      <div className="shield-hud">
+                        <span className="hp-label">SHIELD</span>
+                        <div className="hp-bar">
+                          <span className="hp-fill" style={{ width: `${shieldHp[0]}%` }}></span>
+                          <span className="hp-glow"></span>
+                        </div>
+                        <span className="hp-value">{shieldHp[0]}%</span>
+                        <span className="hp-ping" key={`hp-0-${shieldPulse[0]}`}></span>
+                      </div>
+                    </div>
+                    {shieldHp[0] === 0 && (
+                      <div className="unlocked-banner">
+                        <span className="unlocked-text" data-text="UNLOCKED">UNLOCKED</span>
+                        <span className="unlocked-accent"></span>
+                      </div>
+                    )}
                     <motion.h3 className="skill-title" variants={fadeInUp}>Full-Stack Development</motion.h3>
                     <motion.p className="skill-description" variants={fadeInUp}>
                       Building modern, responsive web applications with optimized frontend interfaces and scalable backend systems.
@@ -180,10 +283,47 @@ const About = () => {
                 
                 <motion.div className="skill-column" variants={scaleIn}>
                   <motion.div 
-                    className="skill-card"
+                    className={`skill-card ${shieldHp[1] === 0 ? 'unlocked' : 'locked'}`}
                     whileHover={{ scale: 1.05, y: -5 }}
                     transition={{ duration: 0.3 }}
                   >
+                    <div
+                      className={shieldHp[1] === 0 ? 'shield-overlay broken' : 'shield-overlay'}
+                      ref={(el) => (shieldRefs.current[1] = el)}
+                      style={{ opacity: shieldHp[1] / 100 }}
+                      onClick={(e) => onShieldClick(1, e)}
+                    >
+                      <div className="shield-shards">
+                        <span className="shard s1"></span>
+                        <span className="shard s2"></span>
+                        <span className="shard s3"></span>
+                        <span className="shard s4"></span>
+                        <span className="shard s5"></span>
+                        <span className="shard s6"></span>
+                        <span className="shard s7"></span>
+                        <span className="shard s8"></span>
+                        <span className="shard s9"></span>
+                        <span className="shard s10"></span>
+                        <span className="shard s11"></span>
+                        <span className="shard s12"></span>
+                      </div>
+                      <div className="shield-pulse" key={`sp-1-${shieldPulse[1]}`}></div>
+                      <div className="shield-hud">
+                        <span className="hp-label">SHIELD</span>
+                        <div className="hp-bar">
+                          <span className="hp-fill" style={{ width: `${shieldHp[1]}%` }}></span>
+                          <span className="hp-glow"></span>
+                        </div>
+                        <span className="hp-value">{shieldHp[1]}%</span>
+                        <span className="hp-ping" key={`hp-1-${shieldPulse[1]}`}></span>
+                      </div>
+                    </div>
+                    {shieldHp[1] === 0 && (
+                      <div className="unlocked-banner">
+                        <span className="unlocked-text" data-text="UNLOCKED">UNLOCKED</span>
+                        <span className="unlocked-accent"></span>
+                      </div>
+                    )}
                     <motion.h3 className="skill-title" variants={fadeInUp}>Game Development</motion.h3>
                     <motion.p className="skill-description" variants={fadeInUp}>
                       Creating engaging gameplay experiences with performant code, intuitive mechanics, and immersive worlds.
@@ -193,10 +333,47 @@ const About = () => {
                 
                 <motion.div className="skill-column" variants={scaleIn}>
                   <motion.div 
-                    className="skill-card"
+                    className={`skill-card ${shieldHp[2] === 0 ? 'unlocked' : 'locked'}`}
                     whileHover={{ scale: 1.05, y: -5 }}
                     transition={{ duration: 0.3 }}
                   >
+                    <div
+                      className={shieldHp[2] === 0 ? 'shield-overlay broken' : 'shield-overlay'}
+                      ref={(el) => (shieldRefs.current[2] = el)}
+                      style={{ opacity: shieldHp[2] / 100 }}
+                      onClick={(e) => onShieldClick(2, e)}
+                    >
+                      <div className="shield-shards">
+                        <span className="shard s1"></span>
+                        <span className="shard s2"></span>
+                        <span className="shard s3"></span>
+                        <span className="shard s4"></span>
+                        <span className="shard s5"></span>
+                        <span className="shard s6"></span>
+                        <span className="shard s7"></span>
+                        <span className="shard s8"></span>
+                        <span className="shard s9"></span>
+                        <span className="shard s10"></span>
+                        <span className="shard s11"></span>
+                        <span className="shard s12"></span>
+                      </div>
+                      <div className="shield-pulse" key={`sp-2-${shieldPulse[2]}`}></div>
+                      <div className="shield-hud">
+                        <span className="hp-label">SHIELD</span>
+                        <div className="hp-bar">
+                          <span className="hp-fill" style={{ width: `${shieldHp[2]}%` }}></span>
+                          <span className="hp-glow"></span>
+                        </div>
+                        <span className="hp-value">{shieldHp[2]}%</span>
+                        <span className="hp-ping" key={`hp-2-${shieldPulse[2]}`}></span>
+                      </div>
+                    </div>
+                    {shieldHp[2] === 0 && (
+                      <div className="unlocked-banner">
+                        <span className="unlocked-text" data-text="UNLOCKED">UNLOCKED</span>
+                        <span className="unlocked-accent"></span>
+                      </div>
+                    )}
                     <motion.h3 className="skill-title" variants={fadeInUp}>Technical Problem-Solving</motion.h3>
                     <motion.p className="skill-description" variants={fadeInUp}>
                       Architecting elegant solutions to complex technical challenges across different platforms and domains.

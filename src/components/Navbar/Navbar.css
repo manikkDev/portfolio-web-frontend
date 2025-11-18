@@ -307,7 +307,6 @@
 }
 
 .toggle-thumb.dark {
-  transform: translateX(18px);
   background: linear-gradient(135deg, #ff00ff, #cc0099);
   box-shadow: 0 0 8px rgba(255, 0, 255, 0.5), 0 1px 4px rgba(0, 0, 0, 0.3);
 }
@@ -442,8 +441,8 @@ body.dark .mobile-menu-btn span {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  position: relative;
   overflow: hidden;
+  z-index: 1100;
 }
 
 .mobile-menu::before {
@@ -622,7 +621,7 @@ body.dark .mobile-link:hover {
 }
 
 /* Gaming Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .navbar {
     height: clamp(60px, 8vw, 70px);
     padding: clamp(10px, 2vw, 15px) 0;
@@ -639,13 +638,13 @@ body.dark .mobile-link:hover {
 
   .mobile-menu-btn {
     display: flex;
-    width: clamp(32px, 6vw, 40px);
-    height: clamp(32px, 6vw, 40px);
-    padding: clamp(4px, 1vw, 6px);
-  }
+    width: clamp(28px, 6vw, 36px);
+    height: clamp(28px, 6vw, 36px);
+    padding: clamp(3px, 1vw, 5px);
+    }
 
   .mobile-menu-btn span {
-    height: clamp(2px, 0.5vw, 3px);
+    height: clamp(2px, 0.5vw, 2.5px);
   }
 
   .navbar-logo {
@@ -673,6 +672,16 @@ body.dark .mobile-link:hover {
     height: clamp(36px, 7vw, 44px);
     font-size: clamp(1rem, 3vw, 1.2rem);
   }
+}
+
+/* Compact controls for small phones */
+@media (max-width: 640px) {
+  .navbar-actions { gap: clamp(6px, 2vw, 10px); }
+  .theme-toggle { padding: 0; border-radius: 16px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); }
+  .toggle-track { width: 34px; height: 18px; border-color: rgba(255,255,255,0.18); }
+  .toggle-thumb { width: 14px; height: 14px; top: 2px; left: 2px; font-size: 8px; }
+  .mobile-menu-btn { width: 28px; height: 28px; padding: 3px; border-radius: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); }
+  .mobile-menu-btn span { height: 2px; background: var(--current-text-primary); box-shadow: none; }
 }
 
 @media (max-width: 480px) {
@@ -947,4 +956,96 @@ body.dark .navbar.scrolled {
 
 .navbar-link.active::before {
   opacity: 0.3;
+}
+/* Advanced Menu Toggle */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 2147483647;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-toggle span {
+  width: 100%;
+  height: 3px;
+  background: var(--current-text-primary);
+  border-radius: 2px;
+  margin: 3px 0;
+}
+
+.menu-toggle.open span {
+  background: #ff00ff;
+}
+
+/* Mobile Overlay Menu */
+.menu-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, #00ffff, #ff00ff, #ffff00, #00ffff) 1;
+  padding: var(--spacing-lg) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  overflow: hidden;
+  z-index: 2147483646;
+}
+
+.overlay-link {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+  padding: var(--spacing-md) var(--spacing-xl);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 1.1rem;
+  font-family: "Courier New", monospace;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  margin: 0 var(--spacing-md);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.overlay-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #00ffff, #ff00ff, #ffff00);
+  transition: width 0.3s ease;
+  z-index: 1;
+}
+
+.overlay-link:hover::before { width: 100%; opacity: 0.08; }
+.overlay-link:hover { color: #00ffff; background: rgba(0, 255, 255, 0.08); border-left-color: #00ffff; padding-left: calc(var(--spacing-xl) + var(--spacing-sm)); box-shadow: 0 0 15px rgba(0, 255, 255, 0.25), inset 0 0 15px rgba(0, 255, 255, 0.08); transform: translateX(6px); }
+
+@media (max-width: 1024px) {
+  .navbar-menu { display: none; }
+  .menu-toggle { display: flex; }
+}
+
+@media (max-width: 640px) {
+  .menu-toggle { width: 32px; height: 32px; padding: 4px; border-radius: 8px; }
+  .menu-toggle span { height: 2px; }
 }
