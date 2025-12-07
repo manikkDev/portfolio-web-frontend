@@ -441,7 +441,10 @@ body.dark .mobile-menu-btn span {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  overflow: hidden;
+  max-height: calc(100vh - 70px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   z-index: 1100;
 }
 
@@ -656,6 +659,10 @@ body.dark .mobile-link:hover {
     top: clamp(60px, 8vw, 70px);
     padding: clamp(var(--spacing-md), 4vw, var(--spacing-lg)) 0;
     gap: clamp(var(--spacing-sm), 2vw, var(--spacing-md));
+    max-height: calc(100vh - clamp(60px, 8vw, 70px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .mobile-link {
@@ -749,6 +756,10 @@ body.dark .mobile-link:hover {
     top: clamp(55px, 12vw, 65px);
     padding: clamp(var(--spacing-sm), 3vw, var(--spacing-md)) 0;
     gap: clamp(var(--spacing-xs), 1.5vw, var(--spacing-sm));
+    max-height: calc(100vh - clamp(55px, 12vw, 65px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .mobile-link {

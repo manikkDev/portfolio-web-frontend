@@ -224,7 +224,7 @@ const Navbar = () => {
             <a href="#projects" className="mobile-link" onClick={toggleMobileMenu}><span>Projects</span></a>
             <a href="#skills-bottom" className="mobile-link" onClick={toggleMobileMenu}><span>Skills</span></a>
             <a href="#youtube" className="mobile-link" onClick={toggleMobileMenu}><span>YouTube</span></a>
-            <a href="#linkedin-posts" className="mobile-link" onClick={toggleMobileMenu}><span>Blog</span></a>
+            <a href="https://www.geeksforgeeks.org/profile/manickk" className="mobile-link" onClick={toggleMobileMenu} target="_blank" rel="noopener noreferrer"><span>GeeksforGeeks</span></a>
             <a href="#contact" className="mobile-link" onClick={toggleMobileMenu}><span>Contact</span></a>
           </nav>
         ),
