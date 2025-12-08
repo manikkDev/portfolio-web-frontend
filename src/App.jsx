@@ -15,15 +15,12 @@ import SkillsBottom from './components/Skills/SkillsBottom'
 import { ThemeProvider } from './contexts/ThemeProvider'
 
 function App() {
-  const [introVisible, setIntroVisible] = useState(true)
+  const [introVisible, setIntroVisible] = useState(false)
   const aimRef = useRef(null)
   const posRef = useRef({ x: -100, y: -100 })
   const rafRef = useRef(null)
 
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const t = setTimeout(() => setIntroVisible(false), reduced ? 300 : 2400)
-    return () => clearTimeout(t)
   }, [])
 
   useEffect(() => {
