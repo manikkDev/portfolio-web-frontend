@@ -8,19 +8,22 @@ import Footer from './components/Footer/Footer'
 import GeometryDash from './components/GeometryDash/GeometryDash'
 import Hero from './components/Hero/Hero'
 import LinkedPosts from './components/LinkedPosts/LinkedPosts'
-import Youtube from './components/Youtube/Youtube'
 import Navbar from './components/Navbar/Navbar'
 import Projects from './components/Projects/Projects'
 import SkillsBottom from './components/Skills/SkillsBottom'
+import Youtube from './components/Youtube/Youtube'
 import { ThemeProvider } from './contexts/ThemeProvider'
 
 function App() {
-  const [introVisible, setIntroVisible] = useState(false)
+  const [introVisible, setIntroVisible] = useState(true)
   const aimRef = useRef(null)
   const posRef = useRef({ x: -100, y: -100 })
   const rafRef = useRef(null)
 
   useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const t = setTimeout(() => setIntroVisible(false), reduced ? 300 : 2400)
+    return () => clearTimeout(t)
   }, [])
 
   useEffect(() => {
