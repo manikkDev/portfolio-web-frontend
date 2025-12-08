@@ -1,0 +1,16 @@
+[
+  {
+    "id": "e70627fb-b182-4343-970e-26715f347fd5",
+    "name": "Test User",
+    "stars": 5,
+    "comment": "Great site!",
+    "createdAt": 1765201295425
+  },
+  {
+    "id": "b7a4f5bb-0617-4e3b-a5a0-9a443d8b1f9a",
+    "name": "Manik",
+    "stars": 5,
+    "comment": "Splendid",
+    "createdAt": 1765201413518
+  }
+]
