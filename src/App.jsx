@@ -1,18 +1,21 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import './App.css'
 import About from './components/About/About'
-import Contact from './components/Contact/Contact'
-import Experience from './components/Experience/Experience'
-import Footer from './components/Footer/Footer'
-import GeometryDash from './components/GeometryDash/GeometryDash'
 import Hero from './components/Hero/Hero'
-import LinkedPosts from './components/LinkedPosts/LinkedPosts'
+import LazySection from './components/LazySection'
 import Navbar from './components/Navbar/Navbar'
-import Projects from './components/Projects/Projects'
-import SkillsBottom from './components/Skills/SkillsBottom'
-import Youtube from './components/Youtube/Youtube'
 import { ThemeProvider } from './contexts/ThemeProvider'
+
+// Lazy-load below-the-fold components for better initial load
+const Experience = lazy(() => import('./components/Experience/Experience'))
+const Projects = lazy(() => import('./components/Projects/Projects'))
+const SkillsBottom = lazy(() => import('./components/Skills/SkillsBottom'))
+const Youtube = lazy(() => import('./components/Youtube/Youtube'))
+const LinkedPosts = lazy(() => import('./components/LinkedPosts/LinkedPosts'))
+const GeometryDash = lazy(() => import('./components/GeometryDash/GeometryDash'))
+const Contact = lazy(() => import('./components/Contact/Contact'))
+const Footer = lazy(() => import('./components/Footer/Footer'))
 
 function App() {
   const [introVisible, setIntroVisible] = useState(true)
@@ -138,14 +141,46 @@ function App() {
         <Navbar />
         <Hero />
         <About />
-        <Experience />
-        <Projects />
-        <SkillsBottom />
-        <Youtube />
-        <LinkedPosts />
-        <GeometryDash />
-        <Contact />
-        <Footer />
+        <LazySection minHeight="100vh" rootMargin="300px">
+          <Suspense fallback={null}>
+            <Experience />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="100vh" rootMargin="300px">
+          <Suspense fallback={null}>
+            <Projects />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="80vh" rootMargin="200px">
+          <Suspense fallback={null}>
+            <SkillsBottom />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="80vh" rootMargin="200px">
+          <Suspense fallback={null}>
+            <Youtube />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="60vh" rootMargin="200px">
+          <Suspense fallback={null}>
+            <LinkedPosts />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="50vh" rootMargin="200px">
+          <Suspense fallback={null}>
+            <GeometryDash />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="80vh" rootMargin="200px">
+          <Suspense fallback={null}>
+            <Contact />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="auto" rootMargin="200px">
+          <Suspense fallback={null}>
+            <Footer />
+          </Suspense>
+        </LazySection>
       </div>
     </ThemeProvider>
   )

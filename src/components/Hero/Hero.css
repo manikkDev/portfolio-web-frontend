@@ -96,7 +96,7 @@
 
 .hero-content {
   display: grid;
-  grid-template-columns: 0.4fr 1.6fr;
+  grid-template-columns: minmax(200px, 0.4fr) minmax(0, 1.6fr);
   gap: var(--spacing-lg);
   align-items: center;
   width: 100%;
@@ -113,16 +113,16 @@
 
 .image-container {
   position: relative;
-  width: clamp(267px, 33.33vw, 373px);
-  height: clamp(267px, 33.33vw, 373px);
+  width: clamp(180px, 33.33vw, 373px);
+  height: clamp(180px, 33.33vw, 373px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .image-placeholder {
-  width: clamp(240px, 29.33vw, 320px);
-  height: clamp(240px, 29.33vw, 320px);
+  width: clamp(160px, 29.33vw, 320px);
+  height: clamp(160px, 29.33vw, 320px);
   border-radius: 50%;
   position: relative;
   overflow: hidden;
@@ -451,45 +451,32 @@
   justify-content: center;
   padding: var(--spacing-sm) 0;
   gap: var(--spacing-sm);
-  max-width: 750px !important; /* Allow more stretching on large screens */
-  width: 100%; /* Responsive width for mobile */
-  margin: 0 auto; /* Center the content */
-}
-
-/* Force 750px width only on larger screens */
-@media (min-width: 1024px) {
-  .hero-text-section {
-    width: 750px !important;
-  }
+  max-width: 750px;
+  width: 100%;
+  margin: 0 auto;
+  min-width: 0; /* Allow flex shrink */
+  overflow-wrap: break-word;
 }
 
 .welcome-text {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  max-width: 750px !important;
-  width: 100%; /* Responsive width for mobile */
-}
-
-/* Force 750px width only on larger screens */
-@media (min-width: 1024px) {
-  .welcome-text {
-    width: 750px !important;
-  }
+  max-width: 750px;
+  width: 100%;
 }
 
 .main-heading {
   font-size: clamp(1.244rem, 2.489vw, 1.777rem);
   font-family: var(--font-primary);
   font-weight: 900;
-  line-height: 1;
+  line-height: 1.1;
   margin: 0;
   position: relative;
   text-transform: uppercase;
   letter-spacing: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  will-change: transform, filter;
+  overflow-wrap: break-word;
+  word-break: break-word;
   transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
@@ -552,8 +539,7 @@
   border-radius: 8px;
   backdrop-filter: blur(10px);
   overflow: hidden;
-  will-change: transform;
-  max-width: 750px !important;
+  max-width: 750px;
   width: 100%;
   transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
 }
@@ -2220,11 +2206,7 @@
 /* Fix for 386x586 resolution and small screens */
 @media (max-width: 400px) {
   .hero {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-    padding-top: clamp(40px, 6vw, 50px) !important;
+    padding-top: clamp(40px, 6vw, 50px);
   }
 
   .hero-container {
@@ -2255,11 +2237,11 @@
   }
 
   .main-heading {
-    font-size: clamp(1rem, 5vw, 1.4rem) !important;
+    font-size: clamp(1rem, 5vw, 1.4rem);
     white-space: normal;
     overflow: visible;
     line-height: 1.2;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .welcome-text {
@@ -2288,51 +2270,50 @@
   .name-glitch,
   .call-me-text,
   .manik-glitch {
-    font-size: clamp(0.7rem, 3.5vw, 1rem) !important;
+    font-size: clamp(0.7rem, 3.5vw, 1rem);
     line-height: 1.3;
   }
 
   .role-text {
-    font-size: clamp(0.6rem, 3vw, 0.9rem) !important;
+    font-size: clamp(0.6rem, 3vw, 0.9rem);
     line-height: 1.4;
   }
 
   .description-text {
-    font-size: clamp(0.55rem, 2.8vw, 0.8rem) !important;
+    font-size: clamp(0.55rem, 2.8vw, 0.8rem);
     line-height: 1.5;
-    word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 100%;
   }
 
   /* Adjust floating elements for smaller screens */
   .hud-element {
-    animation: none !important;
+    animation-duration: 0s;
     position: absolute;
     opacity: 0.7;
     transform: scale(0.8);
   }
 
   .image-glow {
-    animation: none !important;
+    animation-duration: 0s;
     opacity: 0.3;
   }
 
   .gaming-overlay {
-    animation: none !important;
+    animation-duration: 0s;
     opacity: 0.2;
   }
 
   .glitch-particle {
-    display: none !important;
+    display: none;
   }
 
   .hologram-ring {
-    animation: none !important;
+    animation-duration: 0s;
   }
 
   .image-placeholder {
-    animation: gradientShift 4s ease-in-out infinite !important;
+    animation: gradientShift 4s ease-in-out infinite;
     transform: none;
   }
 
@@ -2516,7 +2497,7 @@
   }
 
   .hero-text-section .welcome-text {
-    max-width: 750px !important;
+    max-width: 100%;
     box-sizing: border-box;
   }
 }
@@ -2618,10 +2599,9 @@
   }
 
   .main-heading {
-    font-size: clamp(1rem, 2vw, 1.4rem) !important;
+    font-size: clamp(1rem, 2vw, 1.4rem);
     white-space: normal;
     overflow: visible;
-    word-wrap: break-word;
     overflow-wrap: break-word;
   }
 
@@ -2635,16 +2615,15 @@
 
   .typing-text,
   .name-glitch {
-    font-size: clamp(0.8rem, 1.6vw, 1rem) !important;
+    font-size: clamp(0.8rem, 1.6vw, 1rem);
   }
 
   .role-text {
-    font-size: clamp(0.75rem, 1.4vw, 0.95rem) !important;
+    font-size: clamp(0.75rem, 1.4vw, 0.95rem);
   }
 
   .description-text {
-    font-size: clamp(0.7rem, 1.3vw, 0.85rem) !important;
-    word-wrap: break-word;
+    font-size: clamp(0.7rem, 1.3vw, 0.85rem);
     overflow-wrap: break-word;
     max-width: 100%;
     line-height: 1.4;
@@ -2677,7 +2656,7 @@
 
 @media (min-width: 1200px) {
   .hero-text-section {
-    max-width: 750px !important; /* Consistent max-width for all large screens */
+    max-width: 750px;
     padding: var(--spacing-lg) var(--spacing-xl);
   }
 
@@ -2693,10 +2672,9 @@
 
 @media (min-width: 992px) and (max-width: 1199px) {
   .hero-text-section {
-    max-width: 750px !important;
+    max-width: 750px;
     padding: var(--spacing-md) var(--spacing-lg);
   }
-
   .welcome-text {
     padding: 0 var(--spacing-md);
   }
@@ -2704,109 +2682,10 @@
 
 @media (min-width: 769px) and (max-width: 991px) {
   .hero-text-section {
-    max-width: 750px !important;
+    max-width: 750px;
     padding: var(--spacing-sm) var(--spacing-md);
   }
-
   .welcome-text {
     padding: 0 var(--spacing-sm);
-  }
-}
-
-/* Specific fix for 1188x576 and similar resolutions */
-@media (min-width: 1180px) and (max-width: 1200px) and (min-height: 570px) and (max-height: 580px) {
-  .hero {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-  }
-
-  .hero-container {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    padding: 8px 12px !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-  }
-
-  .hero-content {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    gap: 16px !important;
-    grid-template-columns: 0.32fr 1.68fr !important;
-    box-sizing: border-box !important;
-  }
-
-  .hero-image-section {
-    padding: 0 !important;
-  }
-
-  .image-container {
-    width: 240px !important;
-    height: 240px !important;
-  }
-
-  .image-placeholder {
-    width: 220px !important;
-    height: 220px !important;
-  }
-
-  .hero-text-section {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 8px !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-  }
-
-  .welcome-text {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  .main-heading {
-    font-size: 1.1rem !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-  }
-
-  .intro-text-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 6px !important;
-    margin: 6px 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  .typing-text,
-  .name-glitch {
-    font-size: 0.85rem !important;
-  }
-
-  .role-text {
-    font-size: 0.8rem !important;
-  }
-
-  .description-text {
-    font-size: 0.75rem !important;
-    line-height: 1.3 !important;
-  }
-
-  /* Adjust floating elements for very small screens */
-  .hud-element {
-    opacity: 0.5;
-    transform: scale(0.6);
-  }
-
-  .terminal-window,
-  .code-panel,
-  .game-stats {
-    display: none !important;
   }
 }
