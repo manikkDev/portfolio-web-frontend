@@ -1,9 +1,9 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import fearlessVideo from '../../assets/fearless.mp4'
+import swertzLogo from '../../assets/swertz-logo.jpg'
 import { useTheme } from '../../hooks/useTheme'
 import './Youtube.css'
-import swertzLogo from '../../assets/swertz-logo.jpg'
-import fearlessVideo from '../../assets/fearless.mp4'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -122,7 +122,7 @@ const Youtube = () => {
     v.muted = !soundOn
     if (shouldPlayVideo) {
       const p = v.play()
-      if (p && typeof p.catch === 'function') p.catch(() => {})
+      if (p && typeof p.catch === 'function') p.catch(() => { })
     } else {
       v.pause()
     }
