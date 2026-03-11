@@ -97,6 +97,32 @@
   border: 1px solid rgba(57,255,20,0.9);
   font-weight: 700;
   cursor: pointer;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+}
+.contact-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+.contact-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.contact-status {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.contact-status.success {
+  background: rgba(57, 255, 20, 0.15);
+  color: #39ff14;
+  border: 1px solid rgba(57, 255, 20, 0.3);
+}
+.contact-status.error {
+  background: rgba(255, 50, 50, 0.15);
+  color: #ff5050;
+  border: 1px solid rgba(255, 50, 50, 0.3);
 }
 
 .info-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; }

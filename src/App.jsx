@@ -15,6 +15,7 @@ const Youtube = lazy(() => import('./components/Youtube/Youtube'))
 const LinkedPosts = lazy(() => import('./components/LinkedPosts/LinkedPosts'))
 const GeometryDash = lazy(() => import('./components/GeometryDash/GeometryDash'))
 const Contact = lazy(() => import('./components/Contact/Contact'))
+const Rating = lazy(() => import('./components/Rating/Rating'))
 const Footer = lazy(() => import('./components/Footer/Footer'))
 
 function App() {
@@ -174,6 +175,11 @@ function App() {
         <LazySection minHeight="80vh" rootMargin="200px">
           <Suspense fallback={null}>
             <Contact />
+          </Suspense>
+        </LazySection>
+        <LazySection minHeight="60vh" rootMargin="200px">
+          <Suspense fallback={null}>
+            <Rating />
           </Suspense>
         </LazySection>
         <LazySection minHeight="auto" rootMargin="200px">

@@ -1,6 +1,7 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { useTheme } from '../../hooks/useTheme'
+import { api } from '../../api/client'
 import './Contact.css'
 
 const containerVariants = {
@@ -63,8 +64,31 @@ const Contact = () => {
   const sectionRef = useRef(null)
   const inView = useInView(sectionRef, { threshold: 0.2 })
 
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' })
+  const [status, setStatus] = useState({ type: '', message: '' }) // 'success' | 'error' | 'loading'
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsSubmitting(true)
+    setStatus({ type: '', message: '' })
+
+    try {
+      const result = await api.submitContact(formData)
+      setStatus({ type: 'success', message: result.message || 'Message sent successfully!' })
+      setFormData({ name: '', email: '', subject: '', message: '' })
+    } catch (err) {
+      const msg = err.details
+        ? err.details.join('. ')
+        : err.message || 'Something went wrong. Please try again.'
+      setStatus({ type: 'error', message: msg })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -85,11 +109,20 @@ const Contact = () => {
           <motion.article className="contact-card" variants={cardVariants}>
             <h3 className="card-title">Send Message</h3>
             <form className="contact-form" onSubmit={handleSubmit}>
-              <input className="contact-input" type="text" placeholder="Your Name" aria-label="Your Name" />
-              <input className="contact-input" type="email" placeholder="Your Email" aria-label="Your Email" />
-              <input className="contact-input" type="text" placeholder="Subject" aria-label="Subject" />
-              <textarea className="contact-textarea" rows="6" placeholder="Your Message" aria-label="Your Message"></textarea>
-              <button className="contact-btn" type="submit">Send Message</button>
+              <input className="contact-input" type="text" name="name" placeholder="Your Name" aria-label="Your Name" value={formData.name} onChange={handleChange} required />
+              <input className="contact-input" type="email" name="email" placeholder="Your Email" aria-label="Your Email" value={formData.email} onChange={handleChange} required />
+              <input className="contact-input" type="text" name="subject" placeholder="Subject" aria-label="Subject" value={formData.subject} onChange={handleChange} />
+              <textarea className="contact-textarea" name="message" rows="6" placeholder="Your Message" aria-label="Your Message" value={formData.message} onChange={handleChange} required></textarea>
+
+              {status.message && (
+                <div className={`contact-status ${status.type}`}>
+                  {status.type === 'success' ? '✅' : '⚠️'} {status.message}
+                </div>
+              )}
+
+              <button className="contact-btn" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Sending...' : 'Send Message'}
+              </button>
             </form>
           </motion.article>
 
@@ -102,9 +135,9 @@ const Contact = () => {
             <div className="follow-block">
               <h3 className="card-title">Follow Me</h3>
               <div className="socials">
-                <a className="social" href="#" aria-label="GitHub"><GitHubIcon /></a>
+                <a className="social" href="https://github.com/manikkDev" target="_blank" rel="noreferrer" aria-label="GitHub"><GitHubIcon /></a>
                 <a className="social" href="#" aria-label="Twitter"><TwitterIcon /></a>
-                <a className="social" href="#" aria-label="LinkedIn"><LinkedInIcon /></a>
+                <a className="social" href="https://www.linkedin.com/in/manikaraj-anburaj-4550ba354" target="_blank" rel="noreferrer" aria-label="LinkedIn"><LinkedInIcon /></a>
               </div>
             </div>
           </motion.article>
