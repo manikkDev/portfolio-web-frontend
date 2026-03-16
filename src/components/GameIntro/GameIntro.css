@@ -1,0 +1,190 @@
+.game-intro-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-color: #030510;
+  overflow: hidden;
+  font-family: 'Space Mono', 'Courier New', Courier, monospace;
+}
+
+/* Loader Styles */
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #00ffff;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.loader-text {
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.loader-bar-bg {
+  width: 300px;
+  height: 4px;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loader-bar-fg {
+  height: 100%;
+  background: #00ffff;
+  box-shadow: 0 0 15px #00ffff;
+  transition: width 0.2s ease;
+}
+
+.loader-percentage {
+  margin-top: 15px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* UI Overlay Styles */
+.intro-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Let clicks pass through to canvas if needed, except for button */
+}
+
+.intro-title-wrapper {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.cyber-title {
+  font-size: 5rem;
+  color: transparent;
+  -webkit-text-stroke: 1px #fff;
+  position: relative;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 5px;
+}
+
+.cyber-title::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: #00ffff;
+  filter: blur(8px);
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.cyber-subtitle {
+  color: #ff00ff;
+  font-size: 1rem;
+  letter-spacing: 4px;
+  margin-top: 10px;
+  opacity: 0.8;
+  text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+}
+
+/* Cyber Button */
+.cyber-button {
+  pointer-events: auto;
+  position: relative;
+  padding: 15px 40px;
+  background: transparent;
+  color: #00ffff;
+  font-family: inherit;
+  font-size: 1.2rem;
+  font-weight: bold;
+  letter-spacing: 3px;
+  border: 2px solid #00ffff;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2), inset 0 0 15px rgba(0, 255, 255, 0.1);
+}
+
+.cyber-button:hover {
+  background: rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.4), inset 0 0 25px rgba(0, 255, 255, 0.2);
+  text-shadow: 0 0 5px #00ffff;
+}
+
+.cyber-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
+  transition: all 0.5s ease;
+}
+
+.cyber-button:hover::before {
+  left: 100%;
+}
+
+.cyber-button:active {
+  transform: scale(0.95);
+}
+
+/* CRT Screen Effects */
+.scanning-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0.4;
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-10px); }
+  100% { transform: translateY(100vh); }
+}
+
+.vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.8) 150%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cyber-title {
+    font-size: 3rem;
+  }
+  .cyber-subtitle {
+    font-size: 0.8rem;
+  }
+  .cyber-button {
+    padding: 12px 30px;
+    font-size: 1rem;
+  }
+}

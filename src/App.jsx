@@ -142,42 +142,42 @@ function App() {
         <Navbar />
         <Hero />
         <About />
-        <LazySection minHeight="100vh" rootMargin="300px">
+        <LazySection minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <Experience />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="100vh" rootMargin="300px">
+        <LazySection minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <Projects />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="80vh" rootMargin="200px">
+        <LazySection minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <SkillsBottom />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="80vh" rootMargin="200px">
+        <LazySection minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <Youtube />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="60vh" rootMargin="200px">
+        <LazySection minHeight="auto" rootMargin="600px">
           <Suspense fallback={null}>
             <LinkedPosts />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="50vh" rootMargin="200px">
+        <LazySection minHeight="auto" rootMargin="600px">
           <Suspense fallback={null}>
             <GeometryDash />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="80vh" rootMargin="200px">
+        <LazySection minHeight="auto" rootMargin="600px">
           <Suspense fallback={null}>
             <Contact />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="60vh" rootMargin="200px">
+        <LazySection minHeight="auto" rootMargin="600px">
           <Suspense fallback={null}>
             <Rating />
           </Suspense>
