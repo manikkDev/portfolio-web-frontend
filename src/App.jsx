@@ -142,27 +142,27 @@ function App() {
         <Navbar />
         <Hero />
         <About />
-        <LazySection minHeight="auto" rootMargin="800px">
+        <LazySection anchorId="experience" minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <Experience />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="auto" rootMargin="800px">
+        <LazySection anchorId="projects" minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <Projects />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="auto" rootMargin="800px">
+        <LazySection anchorId="skills-bottom" minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <SkillsBottom />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="auto" rootMargin="800px">
+        <LazySection anchorId="youtube" minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
             <Youtube />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="auto" rootMargin="600px">
+        <LazySection anchorId="linkedin-posts" minHeight="auto" rootMargin="600px">
           <Suspense fallback={null}>
             <LinkedPosts />
           </Suspense>
@@ -172,7 +172,7 @@ function App() {
             <GeometryDash />
           </Suspense>
         </LazySection>
-        <LazySection minHeight="auto" rootMargin="600px">
+        <LazySection anchorId="contact" minHeight="auto" rootMargin="600px">
           <Suspense fallback={null}>
             <Contact />
           </Suspense>

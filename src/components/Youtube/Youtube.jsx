@@ -134,7 +134,6 @@ const Youtube = () => {
 
   return (
     <motion.section
-      id="youtube"
       className={`youtube ${theme}`}
       ref={sectionRef}
       variants={containerVariants}

@@ -763,7 +763,6 @@ const SkillsBottom = () => {
 
   return (
     <section
-      id="skills-bottom"
       className={`skills-v2 ${theme}`}
       aria-label="Skills section"
     >

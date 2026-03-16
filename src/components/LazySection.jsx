@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
  * Uses IntersectionObserver with rootMargin to start loading before scroll.
  * Once loaded, stays loaded (no unloading) to prevent janky scroll behavior.
  */
-const LazySection = ({ children, className = '', rootMargin = '200px', minHeight = '50vh' }) => {
+const LazySection = ({ children, className = '', rootMargin = '200px', minHeight = '50vh', anchorId }) => {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -32,6 +32,7 @@ const LazySection = ({ children, className = '', rootMargin = '200px', minHeight
 
   return (
     <div
+      id={anchorId}
       ref={ref}
       className={className}
       style={

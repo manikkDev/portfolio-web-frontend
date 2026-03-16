@@ -214,7 +214,6 @@ const Projects = () => {
 
   return (
     <motion.section
-      id="projects"
       className={`projects ${theme}`}
       ref={sectionRef}
       variants={containerVariants}

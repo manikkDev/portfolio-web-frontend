@@ -171,7 +171,6 @@ const Experience = () => {
 
   return (
     <motion.section
-      id="experience"
       className={`experience ${theme}`}
       ref={sectionRef}
       variants={containerVariants}

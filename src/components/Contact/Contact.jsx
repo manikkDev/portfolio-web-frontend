@@ -93,7 +93,6 @@ const Contact = () => {
 
   return (
     <motion.section
-      id="contact"
       className={`contact ${theme}`}
       ref={sectionRef}
       variants={containerVariants}

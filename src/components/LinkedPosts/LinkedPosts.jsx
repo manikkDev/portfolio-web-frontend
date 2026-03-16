@@ -107,7 +107,6 @@ const LinkedPosts = () => {
 
   return (
     <motion.section
-      id="linkedin-posts"
       className={`posts ${theme}`}
       ref={sectionRef}
       variants={containerVariants}
