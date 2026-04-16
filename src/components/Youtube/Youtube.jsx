@@ -170,7 +170,7 @@ const Youtube = () => {
               Roblox‑focused channel with 95k+ subscribers. Specialized in advanced edits and complex transitions, backed by 5+ years of hands‑on video editing experience.
             </p>
             <div className="yt-stats">
-              <div className="yt-pill">95k+ subscribers</div>
+              <div className="yt-pill">140k+ subscribers</div>
               <div className="yt-pill">Roblox gaming</div>
               <div className="yt-pill">5+ years editing</div>
             </div>
