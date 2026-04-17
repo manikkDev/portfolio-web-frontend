@@ -172,7 +172,7 @@ const Youtube = () => {
             <div className="yt-stats">
               <div className="yt-pill">140k+ subscribers</div>
               <div className="yt-pill">Roblox gaming</div>
-              <div className="yt-pill">4+ years editing</div>
+              <div className="yt-pill">5+ years editing</div>
             </div>
             <div className="yt-actions">
               <a className="yt-channel-link" href="https://www.youtube.com/@swertzyt" target="_blank" rel="noreferrer">Visit Channel →</a>
