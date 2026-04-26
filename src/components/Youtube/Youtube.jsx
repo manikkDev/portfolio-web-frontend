@@ -115,7 +115,7 @@ const Youtube = () => {
       if (url) URL.revokeObjectURL(url)
     }
   }, [])
-
+// UPDATES THE API ENDPOINT TO THE NEW ONE
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
