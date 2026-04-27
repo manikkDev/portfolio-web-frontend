@@ -29,7 +29,8 @@ const LazySection = ({ children, className = '', rootMargin = '200px', minHeight
     observer.observe(el);
     return () => observer.disconnect();
   }, [rootMargin]);
-
+  console.log(statusbar); // refering to the min value
+  
   return (
     <div
       id={anchorId}
