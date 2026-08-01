@@ -167,7 +167,7 @@ const Youtube = () => {
           <motion.div className="yt-right" variants={cardVariants}>
             <h3 className="yt-heading">Swertz — Pro Gaming & Editing</h3>
             <p className="yt-about">
-              Roblox‑focused channel with 95k+ subscribers. Specialized in advanced edits and complex transitions, backed by 5+ years of hands‑on video editing experience.
+              Roblox‑focused channel with 95k+ subscribers. Specialized in advanced edits and complex transitions, backed by 4+ years of hands‑on video editing experience.
             </p>
             <div className="yt-stats">
               <div className="yt-pill">145k+ subscribers</div>
