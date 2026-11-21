@@ -1,204 +1,653 @@
-/* Projects Section with Advanced UI */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Projects
+   Same visual language as the sections above: cut-corner panels, cyan and
+   magenta light, mono labels. On wide screens the section pins and scrolling
+   moves the projects past sideways (Projects.jsx sets the section's height and
+   the track's position); elsewhere the cards stack.
+   Shared animations (glitchHover, heroNameGlitch) come from Hero.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .projects {
+  --h-cyan: #00f5ff;
+  --h-magenta: #ff00d4;
+  --h-green: #39ff14;
+  --h-text: #eafcff;
+  --h-muted: rgba(234, 252, 255, 0.76);
+  --h-dim: rgba(234, 252, 255, 0.54);
+  --h-panel: rgba(8, 10, 22, 0.88);
+  --h-line: rgba(0, 245, 255, 0.3);
+  --h-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --cardw: min(760px, 100%);
+
   position: relative;
-  padding: var(--spacing-2xl) 0;
-  overflow: hidden;
-}
-
-/* Match Hero light theme background exactly */
-.projects.light {
+  padding: clamp(48px, 9vh, 110px) 0 clamp(72px, 12vh, 140px);
+  overflow-x: clip;
+  color: var(--h-text);
+  /* the same base as before, so the fade at the end of Experience still lands on it */
   background:
-    radial-gradient(
-      circle at 20% 80%,
-      rgba(99, 102, 241, 0.08) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(139, 92, 246, 0.08) 0%,
-      transparent 50%
-    ),
-    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
-}
-
-/* Match Hero dark theme background exactly */
-.projects.dark {
-  background:
-    radial-gradient(
-      circle at 20% 80%,
-      rgba(0, 255, 255, 0.1) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(255, 0, 255, 0.1) 0%,
-      transparent 50%
-    ),
+    radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
     linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
-/* Shared background overlay container (same as .hero-bg) */
-.section-bg {
+/* a faint grid that fades in below the top edge, so the seam with Experience stays clean */
+.projects::before {
+  content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
-  overflow: hidden;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px) 0 0 / 100% 44px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px) 0 0 / 44px 100%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 320px);
+  mask-image: linear-gradient(to bottom, transparent, #000 320px);
   pointer-events: none;
 }
 
-.projects-container {
-  width: 100%;
-  max-width: var(--container-2xl);
-  margin: 0 auto;
-  padding: 0 clamp(16px, 3vw, 24px);
-  box-sizing: border-box;
+.projects.light {
+  --h-cyan: #0891b2;
+  --h-magenta: #c026d3;
+  --h-green: #15803d;
+  --h-text: #0f172a;
+  --h-muted: #334155;
+  --h-dim: #64748b;
+  --h-panel: rgba(255, 255, 255, 0.9);
+  --h-line: rgba(8, 145, 178, 0.4);
+  background:
+    radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
 }
 
-.projects-header { text-align: center; margin-bottom: var(--spacing-lg); }
-.projects-title {
+.projects.light::before {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px) 0 0 / 100% 44px,
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px) 0 0 / 44px 100%;
+}
+
+/* every cut-corner shape in the section: set --cut on the element */
+.proj-switch,
+.proj-switch button,
+.proj-frame,
+.proj-inner,
+.proj-btn,
+.proj-stack li,
+.proj-open {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+
+/* ───────── Frame ───────── */
+.proj-pin {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* never wider than the screen, however long the track */
+  gap: clamp(26px, 4vh, 44px);
+}
+
+.proj-head {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 32px;
+}
+
+.proj-titles {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+.proj-title {
+  position: relative;
+  width: fit-content;
+  margin: 0;
   font-family: var(--font-primary);
   font-weight: 900;
+  font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.3rem);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  font-size: clamp(1.25rem, 5vw, 2rem);
-  color: var(--current-text-primary);
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0, 245, 255, 0.45), 0 0 2px rgba(0, 245, 255, 0.6);
 }
-.projects-sub { color: var(--current-text-secondary); font-size: clamp(0.9rem, 3vw, 1.125rem); }
 
-/* Segmented control */
-.segmented {
+/* the same colour-split glitch as the other section titles */
+.proj-title::before,
+.proj-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.proj-title::before {
+  color: var(--h-cyan);
+  transform: translate(-2px, 0);
+  animation: heroNameGlitch 4.8s steps(1) infinite;
+}
+
+.proj-title::after {
+  color: var(--h-magenta);
+  transform: translate(2px, 0);
+  animation: heroNameGlitch 3.9s steps(1) infinite reverse;
+}
+
+.projects.light .proj-title {
+  color: var(--h-text);
+  text-shadow: none;
+}
+
+.projects.light .proj-title::before,
+.projects.light .proj-title::after {
+  display: none;
+}
+
+.proj-sub {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 2.5em;
+  padding: 6px 16px 6px 12px;
+  font: 700 clamp(0.8rem, 0.76rem + 0.3vw, 0.98rem) / 1.45 var(--h-mono);
+  letter-spacing: 0.04em;
+  color: var(--h-cyan);
+  background: linear-gradient(90deg, rgba(0, 245, 255, 0.14), rgba(0, 245, 255, 0) 92%);
+  border-left: 3px solid var(--h-cyan);
+}
+
+.proj-sub span {
+  color: var(--h-green);
+}
+
+/* the two categories: shows which one is in view, and jumps to it */
+.proj-switch {
+  --cut: 12px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--current-border-color, rgba(255,255,255,0.12));
-  border-radius: var(--radius-lg);
-  padding: 6px;
-  margin: 0 auto var(--spacing-lg);
-  max-width: 520px;
+  gap: 4px;
+  padding: 4px;
+  background: var(--h-panel);
+  border: 1px solid var(--h-line);
 }
-.segmented-btn {
+
+.proj-switch button {
+  --cut: 9px;
   position: relative;
-  border: none;
+  min-height: 42px;
+  padding: 0 20px;
+  border: 0;
+  font: 700 0.74rem var(--h-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--h-muted);
   background: transparent;
-  color: var(--current-text-primary);
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
   cursor: pointer;
-  overflow: hidden;
+  transition: color 200ms;
 }
-.segmented-btn.active { font-weight: 700; }
-.segmented-indicator {
+
+.proj-switch button[aria-pressed="true"] {
+  color: #04121a;
+}
+
+.projects.light .proj-switch button[aria-pressed="true"] {
+  color: #ffffff;
+}
+
+.proj-switch-label {
+  position: relative;
+}
+
+.proj-switch-on {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2));
-  border: 1px solid rgba(0,255,255,0.35);
-  border-radius: var(--radius-md);
-  box-shadow: 0 6px 24px rgba(0,255,255,0.2);
+  background: var(--h-cyan);
+  box-shadow: 0 0 18px rgba(0, 245, 255, 0.45);
 }
-.segmented-label { position: relative; z-index: 1; }
 
-/* Grid of project cards */
-.projects-grid {
+.proj-switch button:focus-visible {
+  outline: 2px solid var(--h-text);
+  outline-offset: 2px;
+}
+
+/* ───────── Cards ───────── */
+.proj-viewport {
+  position: relative;
+  min-height: 0;
+}
+
+.proj-track {
+  list-style: none;
+  margin: 0;
+  padding: 0 clamp(16px, 4vw, 48px);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(var(--spacing-md), 3vw, var(--spacing-xl));
+  justify-items: center;
+  gap: clamp(28px, 5vh, 48px);
 }
 
-/* Pagination controls */
-.pagination {
+.proj-card {
+  width: var(--cardw);
+}
+
+.proj-frame {
+  --cut: 18px;
+  height: 100%;
+  padding: 1px;
+  background: var(--h-line);
+  transition: background 300ms;
+}
+
+.proj-card:hover .proj-frame,
+.proj-card:focus-within .proj-frame {
+  background: linear-gradient(135deg, var(--h-cyan), var(--h-magenta));
+}
+
+.proj-inner {
+  --cut: 17px;
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--h-panel);
+  overflow: hidden;
+}
+
+/* a soft light that follows the cursor (--mx/--my set from Projects.jsx) */
+.proj-glare {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(480px circle at var(--mx, 50%) var(--my, 50%), rgba(0, 245, 255, 0.09), transparent 60%);
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+  pointer-events: none;
+}
+
+.proj-card:hover .proj-glare {
+  opacity: 1;
+}
+
+/* the picture, in a window frame */
+.proj-media {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #05030f;
+}
+
+.proj-chrome {
+  margin: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: var(--spacing-md);
-}
-.pagination-btn {
-  border: 1px solid var(--current-border-color, rgba(255,255,255,0.12));
-  color: var(--current-text-primary);
-  background: rgba(255,255,255,0.04);
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
-  cursor: pointer;
-}
-.pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.pagination-numbers { display: inline-flex; gap: 8px; position: relative; }
-.pagination-number {
-  position: relative;
-  border: 1px solid var(--current-border-color, rgba(255,255,255,0.12));
-  color: var(--current-text-primary);
-  background: rgba(99,102,241,0.08);
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
-  cursor: pointer;
-  overflow: hidden;
-}
-.pagination-number.active { font-weight: 700; }
-.pagination-indicator {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(0,255,255,0.35);
-  background: linear-gradient(135deg, rgba(0,255,255,0.18), rgba(255,0,255,0.18));
-  box-shadow: 0 6px 24px rgba(0,255,255,0.2);
+  gap: 6px;
+  padding: 9px 14px;
+  font: 500 0.7rem var(--h-mono);
+  letter-spacing: 0.04em;
+  color: rgba(234, 252, 255, 0.55);
+  background: rgba(127, 140, 160, 0.1);
+  border-bottom: 1px solid rgba(127, 140, 160, 0.18);
 }
 
-.project-card {
-  position: relative;
-  background: rgba(0,0,0,0.05);
-  border: 1px solid var(--current-border-color, rgba(255,255,255,0.12));
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  will-change: transform;
-  transform-style: preserve-3d;
-  backdrop-filter: blur(6px);
+.proj-chrome i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(127, 140, 160, 0.45);
 }
-.project-thumb {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-bottom: 1px solid var(--current-border-color, rgba(255,255,255,0.12));
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+
+.proj-chrome i:first-child {
+  background: var(--h-magenta);
 }
-.project-thumb img {
+
+.proj-chrome i:nth-child(2) {
+  background: var(--h-cyan);
+}
+
+.proj-chrome span {
+  margin-left: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proj-shot {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+/* a little wider than its window, so it can drift with the scroll */
+.proj-shot-move {
+  position: absolute;
+  inset: 0 -6%;
+}
+
+.proj-shot img,
+.voxel-art {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: 50% 30%;
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.proj-card:hover .proj-shot img {
+  transform: scale(1.04);
+}
+
+.proj-open {
+  --cut: 8px;
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font: 700 0.7rem var(--h-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #04121a;
+  background: var(--h-cyan);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 250ms, transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.proj-open svg {
+  width: 15px;
+  height: 15px;
+}
+
+.proj-card:hover .proj-open {
+  opacity: 1;
+  transform: none;
+}
+
+/* the words */
+.proj-body {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: clamp(18px, 2.4vw, 28px);
+}
+
+.proj-kicker {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  font: 700 0.68rem var(--h-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--h-magenta);
+}
+
+.proj-kicker span:last-child {
+  color: var(--h-dim);
+}
+
+.proj-body h3 {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 800;
+  font-size: clamp(1.3rem, 1.05rem + 1.1vw, 2rem);
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  color: var(--h-text);
+}
+
+.proj-desc {
+  margin: 0;
+  font-size: clamp(0.96rem, 0.93rem + 0.15vw, 1.04rem);
+  line-height: 1.6;
+  color: var(--h-muted);
+  text-wrap: pretty;
+}
+
+.proj-info {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.proj-info li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--h-text);
+}
+
+.proj-info li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 8px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--h-cyan), var(--h-magenta));
+}
+
+.proj-stack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.proj-stack li {
+  --cut: 6px;
+  padding: 5px 10px;
+  font: 700 0.7rem var(--h-mono);
+  letter-spacing: 0.06em;
+  color: var(--h-text);
+  background: rgba(0, 245, 255, 0.1);
+  border: 1px solid var(--h-line);
+}
+
+.proj-stack li:hover {
+  animation: glitchHover 0.5s ease-in-out infinite;
+}
+
+.proj-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.proj-btn {
+  --cut: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 18px;
+  font: 800 0.76rem var(--font-primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--h-text);
+  background: rgba(127, 140, 160, 0.14);
+  border: 1px solid var(--h-line);
+  transition: background 200ms, color 200ms;
+}
+
+.proj-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.proj-btn--primary {
+  color: #04121a;
+  background: var(--h-cyan);
+  border-color: transparent;
+}
+
+.projects.light .proj-btn--primary {
+  color: #ffffff;
+}
+
+.proj-btn:hover {
+  animation: glitchHover 0.5s ease-in-out infinite;
+}
+
+.proj-btn:focus-visible {
+  outline: 2px solid var(--h-text);
+  outline-offset: 3px;
+}
+
+/* ───────── Tablets: picture beside the words ───────── */
+@media (min-width: 720px) {
+  .projects {
+    --cardw: min(980px, 100%);
+  }
+
+  .proj-inner {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  }
+
+  .proj-media {
+    border-right: 1px solid rgba(127, 140, 160, 0.18);
+  }
+
+  .proj-shot {
+    aspect-ratio: auto;
+    min-height: 260px;
+  }
+}
+
+/* ───────── Wide: pinned, and moved sideways by the scroll ───────── */
+.projects--wide {
+  --pin-h: calc(100vh - 70px);
+  padding: 0;
+}
+
+.projects--wide .proj-pin {
+  position: sticky;
+  top: 70px; /* under the navbar; Projects.jsx measures from the same line */
+  height: var(--pin-h);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(16px, 3vh, 30px);
+  padding: clamp(18px, 4vh, 44px) 0 clamp(14px, 2.6vh, 26px);
+}
+
+.projects--wide .proj-viewport {
+  overflow: clip; /* clip, not hidden: nothing should be able to scroll it sideways */
+  display: flex;
+  align-items: center;
+}
+
+.projects--wide .proj-track {
+  --gap: clamp(28px, 3vw, 48px);
+  --cardw: min(1060px, 74vw);
+  display: flex;
+  align-items: stretch;
+  gap: var(--gap);
+  height: min(100%, 560px);
+  /* the first and last cards can sit in the middle of the screen */
+  padding: 0 calc((100% - var(--cardw)) / 2);
+  will-change: transform;
+}
+
+.projects--wide .proj-card {
+  flex: none;
+  height: 100%;
+}
+
+.projects--wide .proj-shot {
+  min-height: 0;
+}
+
+.proj-foot {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 20px;
+  font: 700 0.7rem var(--h-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--h-dim);
+}
+
+.proj-hint kbd {
+  margin-right: 6px;
+  padding: 3px 7px;
+  font: inherit;
+  color: var(--h-text);
+  background: var(--h-panel);
+  border: 1px solid var(--h-line);
+  border-bottom-width: 2px;
+}
+
+.proj-bar {
+  height: 2px;
+  background: rgba(127, 140, 160, 0.22);
+}
+
+.proj-bar i {
   display: block;
-  filter: brightness(0.98) saturate(1.05);
-}
-.project-card-overlay { position: absolute; inset: 0; pointer-events: none; }
-.project-corner { position: absolute; width: 14px; height: 14px; border: 2px solid rgba(0,255,255,0.6); }
-.project-corner.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-.project-corner.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
-.project-corner.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
-.project-corner.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
-
-.project-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; }
-.project-title { display: flex; align-items: baseline; gap: 10px; }
-.project-title h3 { font-size: clamp(1rem, 2.6vw, 1.25rem); color: var(--current-text-primary); font-weight: 800; }
-.project-year { color: var(--current-text-secondary); font-weight: 600; }
-
-.project-body { padding: 0 22px 18px; }
-.project-desc { color: var(--current-text-secondary); font-size: clamp(0.9rem, 2.4vw, 1.05rem); }
-.project-info { list-style: none; margin-top: 10px; padding: 0; display: grid; gap: 6px; color: var(--current-text-secondary); }
-.project-info li { position: relative; padding-left: 14px; }
-.project-info li::before { content: ''; position: absolute; left: 0; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent, #63e); box-shadow: 0 0 8px var(--accent, #63e); }
-.project-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.project-tag { font-size: clamp(0.75rem, 2vw, 0.875rem); padding: 6px 10px; border-radius: 999px; background: rgba(0,255,255,0.12); color: var(--current-text-primary); border: 1px solid rgba(0,255,255,0.25); backdrop-filter: blur(4px); }
-
-.project-footer { padding: 0 22px 22px; display: flex; gap: 12px; }
-.project-link { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(99,102,241,0.35); color: var(--current-text-primary); text-decoration: none; background: rgba(99,102,241,0.12); }
-.project-link:hover { box-shadow: 0 0 18px rgba(99,102,241,0.28); }
-
-/* Responsiveness */
-@media (max-width: 768px) {
-  .projects { padding: var(--spacing-xl) 0; }
-  .projects-grid { grid-template-columns: 1fr; }
+  height: 100%;
+  background: linear-gradient(90deg, var(--h-cyan), var(--h-magenta));
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
+  transform-origin: left;
 }
 
-/* Reduced motion */
+.proj-count b {
+  font-size: 0.95rem;
+  color: var(--h-cyan);
+}
+
+/* short wide screens: tighter words so a card fits the frame */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .projects--wide .proj-body {
+    gap: 10px;
+    padding: 18px 22px;
+  }
+
+  .projects--wide .proj-body h3 {
+    font-size: 1.5rem;
+  }
+
+  .projects--wide .proj-desc {
+    font-size: 0.93rem;
+    line-height: 1.5;
+  }
+
+  .projects--wide .proj-info {
+    gap: 4px;
+  }
+
+  .projects--wide .proj-info li {
+    font-size: 0.86rem;
+    line-height: 1.38;
+  }
+
+  .projects--wide .proj-btn {
+    min-height: 38px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .project-card { transition: none !important; }
+  .proj-title::before,
+  .proj-title::after {
+    animation: none;
+  }
 }

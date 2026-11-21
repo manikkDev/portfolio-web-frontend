@@ -1,295 +1,380 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import apocalypseShot from '../../assets/projects/apocalypse.webp';
+import discmathShot from '../../assets/projects/discmath.webp';
+import healthwellShot from '../../assets/projects/healthwell.webp';
+import wecareShot from '../../assets/projects/wecare.webp';
 import { useTheme } from '../../hooks/useTheme';
+import { lineIn, useScrollIn } from '../../utils/reveal';
 import './Projects.css';
-import apocalypseThumb from '../../assets/apocalypse-thumbnail.jpg';
 
-const projectsData = {
-  web: [
-    {
-      title: 'HealthWell',
-      year: '2024',
-      description:
-        'AI-powered health platform featuring document analysis and an intelligent assistant with multi-language and dark mode; IoT monitoring upcoming.',
-      stack: ['React JS', 'Node JS', 'Vite', 'MongoDB', 'Express'],
-      links: { live: 'https://healthwell-frontend.vercel.app/', repo: 'https://github.com/manikkDev/HealthWell-Frontend' },
-      thumbnail: 'https://s.wordpress.com/mshots/v1/https%3A%2F%2Fhealthwell-frontend.vercel.app%2F?w=800',
-      info: [
-        'Upload medical documents and get instant AI insights',
-        'Intelligent Health Assistant with prompt input',
-        'Dark mode toggle and US English language selector',
-        'Sign In and Get Started primary actions',
-        'Future perk: IoT Health Monitoring'
-      ]
-    },
-    {
-      title: 'WeCare',
-      year: '2024',
-      description:
-        'Digital health records platform built for SIH Smart India Hackathon; supports migrant workers with secure records, OCR parsing, LLM summaries, and clinician review.',
-      stack: ['React JS', 'Node JS', 'Vite', 'Firestore', 'Express'],
-      links: { live: 'https://wecare-frontend-taupe.vercel.app/', repo: 'https://github.com/manikkDev/WeCare-Frontend' },
-      thumbnail: 'https://s.wordpress.com/mshots/v1/https%3A%2F%2Fwecare-frontend-taupe.vercel.app%2F?w=800',
-      info: [
-        'Digital Health Initiative for migrant workers in Kerala',
-        'Secure & Confidential; Government Approved; Free Registration',
-        'Upload + OCR Report Parsing of test names and values',
-        'LLM Report Summary with flagged concerns',
-        'Secure share links and Doctor Dashboard'
-      ]
-    },
-    {
-      title: 'DiscMath Companion',
-      year: '2023',
-      description:
-        'Discrete Mathematics learning companion built as an engineering mini-project at Mumbai University; topic summaries, calculators, and clean responsive UI.',
-      stack: ['React JS', 'Node JS', 'Vite', 'Firestore', 'Express'],
-      links: { live: 'https://aryapandaram18-afk.github.io/Discmath_w/', repo: '#' },
-      thumbnail: 'https://s.wordpress.com/mshots/v1/https%3A%2F%2Faryapandaram18-afk.github.io%2FDiscmath_w%2F?w=800',
-      info: [
-        'Topic cards for Sets, Relations, Functions, Graphs',
-        'Concise notes with key formulas and examples',
-        'Practice utilities: permutations/combinations & truth tables',
-        'Quick navigation; mobile-friendly layout',
-        'Engineering mini-project at Mumbai University'
-      ]
-    }
-  ],
-  game: [
-    {
-      title: 'Apocalypse',
-      year: '2025',
-      description:
-        'Roblox Studio project featuring AI robots, ray tracing weapon systems, handcrafted level design, and an in-game admin system.',
-      stack: ['Roblox Studio', 'Lua', 'C++', 'DSA', '2D', '3D', 'VFX'],
-      links: { live: 'https://www.roblox.com/games/115803825073544/Apocalypse-RELEASED', repo: '#' },
-      thumbnail: apocalypseThumb,
-      info: [
-        'Created in Roblox Studio using Lua; C++/DSA foundations',
-        'AI robots with pathfinding, state machines, and difficulty scaling',
-        'Ray tracing weapons with precise hit detection and tuned recoil',
-        'Handcrafted level design with wave progression, checkpoints, and hazards',
-        'Admin system with role controls, moderation tools, and stat tracking'
-      ]
-    },
-    {
-      title: 'Voxel Forge',
-      year: '2022',
-      description:
-        'Sandbox builder with procedural generation, chunk streaming, and GPU-accelerated instancing.',
-      stack: ['Three.js', 'WebGL', 'TypeScript'],
-      links: { live: '#', repo: '#' }
-    }
-  ]
-};
+const KINDS = { web: 'Fullstack Web', game: 'Game Dev' };
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { duration: 0.6, staggerChildren: 0.15 }
+// In the order they appear: the web projects, then the games.
+const PROJECTS = [
+  {
+    kind: 'web',
+    title: 'HealthWell',
+    year: '2024',
+    description:
+      'AI-powered health platform featuring document analysis and an intelligent assistant with multi-language and dark mode; IoT monitoring upcoming.',
+    stack: ['React JS', 'Node JS', 'Vite', 'MongoDB', 'Express'],
+    links: { live: 'https://healthwell-frontend.vercel.app/', repo: 'https://github.com/manikkDev/HealthWell-Frontend' },
+    shot: healthwellShot,
+    info: [
+      'Upload medical documents and get instant AI insights',
+      'Intelligent Health Assistant with prompt input',
+      'Dark mode toggle and US English language selector',
+      'Sign In and Get Started primary actions',
+      'Future perk: IoT Health Monitoring'
+    ]
+  },
+  {
+    kind: 'web',
+    title: 'WeCare',
+    year: '2024',
+    description:
+      'Digital health records platform built for SIH Smart India Hackathon; supports migrant workers with secure records, OCR parsing, LLM summaries, and clinician review.',
+    stack: ['React JS', 'Node JS', 'Vite', 'Firestore', 'Express'],
+    links: { live: 'https://wecare-frontend-taupe.vercel.app/', repo: 'https://github.com/manikkDev/WeCare-Frontend' },
+    shot: wecareShot,
+    info: [
+      'Digital Health Initiative for migrant workers in Kerala',
+      'Secure & Confidential; Government Approved; Free Registration',
+      'Upload + OCR Report Parsing of test names and values',
+      'LLM Report Summary with flagged concerns',
+      'Secure share links and Doctor Dashboard'
+    ]
+  },
+  {
+    kind: 'web',
+    title: 'DiscMath Companion',
+    year: '2023',
+    description:
+      'Discrete Mathematics learning companion built as an engineering mini-project at Mumbai University; topic summaries, calculators, and clean responsive UI.',
+    stack: ['React JS', 'Node JS', 'Vite', 'Firestore', 'Express'],
+    links: { live: 'https://aryapandaram18-afk.github.io/Discmath_w/', repo: '#' },
+    shot: discmathShot,
+    info: [
+      'Topic cards for Sets, Relations, Functions, Graphs',
+      'Concise notes with key formulas and examples',
+      'Practice utilities: permutations/combinations & truth tables',
+      'Quick navigation; mobile-friendly layout',
+      'Engineering mini-project at Mumbai University'
+    ]
+  },
+  {
+    kind: 'game',
+    title: 'Apocalypse',
+    year: '2025',
+    description:
+      'Roblox Studio project featuring AI robots, ray tracing weapon systems, handcrafted level design, and an in-game admin system.',
+    stack: ['Roblox Studio', 'Lua', 'C++', 'DSA', '2D', '3D', 'VFX'],
+    links: { live: 'https://www.roblox.com/games/115803825073544/Apocalypse-RELEASED', repo: '#' },
+    shot: apocalypseShot,
+    info: [
+      'Created in Roblox Studio using Lua; C++/DSA foundations',
+      'AI robots with pathfinding, state machines, and difficulty scaling',
+      'Ray tracing weapons with precise hit detection and tuned recoil',
+      'Handcrafted level design with wave progression, checkpoints, and hazards',
+      'Admin system with role controls, moderation tools, and stat tracking'
+    ]
+  },
+  {
+    kind: 'game',
+    title: 'Voxel Forge',
+    year: '2022',
+    description: 'Sandbox builder with procedural generation, chunk streaming, and GPU-accelerated instancing.',
+    stack: ['Three.js', 'WebGL', 'TypeScript'],
+    links: { live: '#', repo: '#' }
   }
-};
+];
+const FIRST = { web: 0, game: PROJECTS.findIndex((p) => p.kind === 'game') };
 
-const sectionFade = {
-  hidden: { y: 26, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } }
-};
+// Side by side and moved by the scroll only where there is room for it and motion is welcome.
+const WIDE = '(min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference)';
 
-const cardVariants = {
-  hidden: { y: 32, opacity: 0, scale: 0.98 },
-  visible: { y: 0, opacity: 1, scale: 1, transition: { duration: 0.55, ease: 'easeOut' } }
-};
-
-const pageVariants = {
-  enter: (direction) => ({ opacity: 0, x: direction > 0 ? 36 : -36 }),
-  center: { opacity: 1, x: 0 },
-  exit: (direction) => ({ opacity: 0, x: direction > 0 ? -36 : 36 })
-};
-
-const ProjectCard = ({ project }) => {
-  return (
-    <motion.article
-      className="project-card"
-      initial="hidden"
-      animate="visible"
-      variants={cardVariants}
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.5 }}
-    >
-      {project.thumbnail && (
-        <div className="project-thumb" aria-hidden="false">
-          <img src={project.thumbnail} alt={`${project.title} frontend screenshot`} loading="lazy" />
-        </div>
-      )}
-      <div className="project-card-overlay" aria-hidden="true">
-        <div className="project-corner tl"></div>
-        <div className="project-corner tr"></div>
-        <div className="project-corner bl"></div>
-        <div className="project-corner br"></div>
-      </div>
-      <header className="project-header">
-        <div className="project-title">
-          <h3>{project.title}</h3>
-          <span className="project-year">{project.year}</span>
-        </div>
-      </header>
-      <div className="project-body">
-        <p className="project-desc">{project.description}</p>
-        {project.info && (
-          <ul className="project-info">
-            {project.info.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        )}
-        <div className="project-tags">
-          {project.stack.map((t) => (
-            <span className="project-tag" key={t}>{t}</span>
-          ))}
-        </div>
-      </div>
-      <footer className="project-footer">
-        <a className="project-link" href={project.links.live} target="_blank" rel="noreferrer">Live</a>
-        <a className="project-link" href={project.links.repo} target="_blank" rel="noreferrer">Repo</a>
-      </footer>
-    </motion.article>
-  );
-};
-
-const SegmentedTabs = ({ active, setActive }) => {
-  return (
-    <div className="segmented">
-      {['web', 'game'].map((tab) => (
-        <button
-          key={tab}
-          className={`segmented-btn ${active === tab ? 'active' : ''}`}
-          onClick={() => setActive(tab)}
-          aria-pressed={active === tab}
-        >
-          <span className="segmented-label">{tab === 'web' ? 'Fullstack Web' : 'Game Dev'}</span>
-          {active === tab && (
-            <motion.span className="segmented-indicator" layoutId="segmented-indicator" />
-          )}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-const Projects = () => {
-  const { theme } = useTheme();
-  const sectionRef = useRef(null);
-  const sectionInView = useInView(sectionRef, { threshold: 0.2 });
-  const [active, setActive] = useState('web');
-  const [page, setPage] = useState(1);
-  const [pageDirection, setPageDirection] = useState(0);
-  const itemsPerPage = 2;
-
+function useMedia(query) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
   useEffect(() => {
-    setPage(1);
-    setPageDirection(0);
-  }, [active]);
+    const mq = window.matchMedia(query);
+    const sync = () => setMatches(mq.matches);
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, [query]);
+  return matches;
+}
 
-  const allItems = projectsData[active];
-  const totalPages = Math.max(1, Math.ceil(allItems.length / itemsPerPage));
-  const safePage = Math.min(page, totalPages);
-  const items = useMemo(() => {
-    const start = (safePage - 1) * itemsPerPage;
-    return allItems.slice(start, start + itemsPerPage);
-  }, [allItems, safePage]);
+const has = (url) => url && url !== '#';
+const host = (url) => (has(url) ? new URL(url).hostname.replace(/^www\./, '') : '');
 
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(1);
-      setPageDirection(0);
+const ICON = {
+  arrow: 'M7 17 17 7M9 7h8v8',
+  code: 'm8 9-4 3 4 3M16 9l4 3-4 3M13.5 6l-3 12',
+  play: 'M8 5.5v13l10.5-6.5z'
+};
+const Icon = ({ name }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d={ICON[name]} />
+  </svg>
+);
+
+/** Stands in for a screenshot: a small isometric voxel landscape, drawn in the site's colours. */
+function VoxelArt() {
+  const u = 22;
+  const cubes = [];
+  for (let s = 0; s <= 16; s++) {
+    // back to front, so nearer columns are drawn over further ones
+    for (let x = 0; x <= 8; x++) {
+      const y = s - x;
+      if (y < 0 || y > 8) continue;
+      const d = Math.hypot(x - 4, y - 4);
+      const h = Math.max(1, Math.round(4.2 - d * 0.7 + Math.sin(x * 1.7) * 0.8 + Math.cos(y * 1.3) * 0.8));
+      const sx = (x - y) * u;
+      const sy = (x + y) * (u / 2) - h * u;
+      const top = `${sx},${sy - u / 2} ${sx + u},${sy} ${sx},${sy + u / 2} ${sx - u},${sy}`;
+      const left = `${sx - u},${sy} ${sx},${sy + u / 2} ${sx},${sy + u / 2 + h * u} ${sx - u},${sy + h * u}`;
+      const right = `${sx},${sy + u / 2} ${sx + u},${sy} ${sx + u},${sy + h * u} ${sx},${sy + u / 2 + h * u}`;
+      cubes.push({ key: `${x}-${y}`, top, left, right, glow: (x * 7 + y * 3) % 11 === 0 || h >= 5 });
     }
-  }, [totalPages, page]);
+  }
+  return (
+    <svg className="voxel-art" viewBox="-215 -100 430 300" role="img" aria-label="Voxel Forge: an isometric voxel landscape">
+      <defs>
+        <linearGradient id="voxel-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#120624" />
+          <stop offset="1" stopColor="#05030f" />
+        </linearGradient>
+      </defs>
+      <rect x="-215" y="-100" width="430" height="300" fill="url(#voxel-sky)" />
+      {cubes.map((c) => (
+        <g key={c.key}>
+          <polygon points={c.left} fill="#0b2c3a" />
+          <polygon points={c.right} fill="#071a26" />
+          <polygon points={c.top} fill={c.glow ? '#ff00d4' : '#00b8c4'} stroke="#05030f" strokeWidth="1" />
+        </g>
+      ))}
+    </svg>
+  );
+}
 
-  const setPageWithDirection = (next) => {
-    if (next === page) return;
-    setPageDirection(next > page ? 1 : -1);
-    setPage(next);
+/**
+ * One project. In the wide layout `pos` is how far the card is from the middle of the
+ * track (0 = centred): cards further out fade back and their picture drifts the other way.
+ */
+function ProjectCard({ project, index, total, pos, wide, onFocus, onReach }) {
+  const ref = useRef(null);
+  const scrollIn = useScrollIn(ref, 0);
+  const rise = useTransform(scrollIn.opacity, [0, 1], [40, 0]);
+  const near = (d) => 1 - Math.min(1, Math.abs(d));
+  const opacity = useTransform(pos, (d) => 0.38 + 0.62 * near(d));
+  const scale = useTransform(pos, (d) => 0.93 + 0.07 * near(d));
+  const shiftX = useTransform(pos, (d) => `${Math.max(-1, Math.min(1, d)) * -5}%`);
+  const live = has(project.links.live) ? project.links.live : null;
+  const game = project.kind === 'game';
+
+  const glare = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`);
   };
 
   return (
-    <motion.section
-      className={`projects ${theme}`}
-      ref={sectionRef}
-      variants={containerVariants}
-      initial="hidden"
-      animate={sectionInView ? 'visible' : 'hidden'}
+    <motion.li
+      ref={ref}
+      className="proj-card"
+      id={`project-${index}`}
+      style={wide ? { opacity, scale } : { opacity: scrollIn.opacity, y: rise }}
+      onFocusCapture={onFocus}
+      onViewportEnter={wide ? undefined : onReach}
+      viewport={{ margin: '-45% 0px -45% 0px' }}
+      aria-label={`${index + 1} of ${total}: ${project.title}`}
     >
-      <div className="projects-container">
-        <motion.div className="projects-header" variants={sectionFade}>
-          <h2 className="projects-title">Projects</h2>
-          <p className="projects-sub">Explore my work across web and games.</p>
-        </motion.div>
-
-        <SegmentedTabs active={active} setActive={setActive} />
-
-        <motion.div
-          key={`grid-${active}-${safePage}`}
-          className="projects-grid"
-          variants={pageVariants}
-          initial="enter"
-          animate="center"
-          custom={pageDirection}
-        >
-          {items.map((p) => (
-            <ProjectCard key={`${active}-${safePage}-${p.title}`} project={p} />
-          ))}
-        </motion.div>
-
-        {totalPages > 1 && (
-          <div className="pagination" role="navigation" aria-label="Projects pagination">
-            <button
-              className="pagination-btn"
-              onClick={() => setPageWithDirection(Math.max(1, safePage - 1))}
-              aria-label="Previous page"
-              disabled={safePage === 1}
-            >
-              ‹
-            </button>
-            <div className="pagination-numbers" role="tablist" aria-label="Switch page">
-              {[...Array(totalPages)].map((_, i) => {
-                const n = i + 1;
-                const isActive = n === safePage;
-                return (
-                  <button
-                    key={`page-${n}`}
-                    role="tab"
-                    aria-selected={isActive}
-                    className={`pagination-number ${isActive ? 'active' : ''}`}
-                    onClick={() => setPageWithDirection(n)}
-                  >
-                    {n}
-                    {isActive && (
-                      <motion.span className="pagination-indicator" layoutId="pagination-indicator" />
-                    )}
-                  </button>
-                );
-              })}
+      <article className="proj-frame">
+        <div className="proj-inner" onPointerMove={glare}>
+          <div className="proj-media">
+            <p className="proj-chrome" aria-hidden="true">
+              <i></i><i></i><i></i>
+              <span>{game && live ? 'roblox.com' : host(project.links.live) || 'local build'}</span>
+            </p>
+            <div className="proj-shot">
+              <motion.div className="proj-shot-move" style={wide ? { x: shiftX } : undefined}>
+                {project.shot ? (
+                  <img src={project.shot} alt={`${project.title}: ${game ? 'game key art' : 'home page'}`} loading="lazy" decoding="async" />
+                ) : (
+                  <VoxelArt />
+                )}
+              </motion.div>
+              {live && (
+                <a className="proj-open" href={live} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true">
+                  <Icon name={game ? 'play' : 'arrow'} />
+                  {game ? 'Play' : 'Open site'}
+                </a>
+              )}
             </div>
-            <button
-              className="pagination-btn"
-              onClick={() => setPageWithDirection(Math.min(totalPages, safePage + 1))}
-              aria-label="Next page"
-              disabled={safePage === totalPages}
-            >
-              ›
-            </button>
+          </div>
+
+          <div className="proj-body">
+            <p className="proj-kicker">
+              <span>{KINDS[project.kind]}</span>
+              <span>{project.year}</span>
+            </p>
+            <h3>{project.title}</h3>
+            <p className="proj-desc">{project.description}</p>
+            {project.info && (
+              <ul className="proj-info">
+                {project.info.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            )}
+            <ul className="proj-stack" aria-label="Built with">
+              {project.stack.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+            {(live || has(project.links.repo)) && (
+              <div className="proj-links">
+                {live && (
+                  <a className="proj-btn proj-btn--primary" href={live} target="_blank" rel="noopener noreferrer">
+                    <span>{game ? 'Play on Roblox' : 'Live site'}</span>
+                    <Icon name={game ? 'play' : 'arrow'} />
+                  </a>
+                )}
+                {has(project.links.repo) && (
+                  <a className="proj-btn" href={project.links.repo} target="_blank" rel="noopener noreferrer">
+                    <span>Source</span>
+                    <Icon name="code" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+          <span className="proj-glare" aria-hidden="true"></span>
+        </div>
+      </article>
+    </motion.li>
+  );
+}
+
+/**
+ * On wide screens the section pins in place and scrolling down moves the projects past
+ * sideways, one at a time; elsewhere they simply stack.
+ */
+const Projects = () => {
+  const { theme } = useTheme();
+  const wide = useMedia(WIDE);
+  const sectionRef = useRef(null);
+  const pinRef = useRef(null);
+  const trackRef = useRef(null);
+  const [distance, setDistance] = useState(0);
+  const [active, setActive] = useState(0);
+  const dist = useMotionValue(0);
+  const n = PROJECTS.length;
+
+  // How far the track has to travel: from the first card centred to the last card centred.
+  useLayoutEffect(() => {
+    if (!wide) {
+      setDistance(0);
+      dist.set(0);
+      return undefined;
+    }
+    const measure = () => {
+      const track = trackRef.current;
+      const card = track?.firstElementChild;
+      if (!card) return;
+      const step = card.offsetWidth + parseFloat(getComputedStyle(track).columnGap || '0');
+      setDistance((n - 1) * step);
+      dist.set((n - 1) * step);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(trackRef.current);
+    return () => ro.disconnect();
+  }, [wide, n, dist]);
+
+  // 0 when the pinned frame first sticks (under the 70px navbar), 1 when the last card is centred.
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start 70px', 'end end'] });
+  const progress = useSpring(scrollYProgress, { stiffness: 170, damping: 32, mass: 0.5 });
+  const x = useTransform([progress, dist], ([p, d]) => -p * d);
+  const along = useTransform(progress, (p) => p * (n - 1));
+  useMotionValueEvent(along, 'change', (v) => {
+    const i = Math.max(0, Math.min(n - 1, Math.round(v)));
+    setActive((a) => (a === i ? a : i));
+  });
+
+  // Where the page must be scrolled to for card `i` to sit in the middle.
+  const scrollFor = (i) => {
+    const top = sectionRef.current.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(pinRef.current).top);
+    return top + (i / (n - 1)) * distance;
+  };
+  const go = (i) => {
+    if (wide) window.scrollTo({ top: scrollFor(i), behavior: 'smooth' });
+    else document.getElementById(`project-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  // Tabbing to a card that is off to the side brings it to the middle.
+  const focusCard = (i) => {
+    if (wide && i !== active) window.scrollTo({ top: scrollFor(i) });
+  };
+
+  const kind = PROJECTS[active].kind;
+
+  return (
+    <section
+      className={`projects ${theme}${wide ? ' projects--wide' : ''}`}
+      ref={sectionRef}
+      style={wide ? { height: `calc(var(--pin-h) + ${distance}px)` } : undefined}
+    >
+      <div className="proj-pin" ref={pinRef}>
+        <motion.header className="proj-head" initial="hidden" whileInView="visible" viewport={{ amount: 0.5 }} transition={{ staggerChildren: 0.12 }}>
+          <div className="proj-titles">
+            <motion.h2 className="proj-title" variants={lineIn} data-text="Projects">
+              Projects
+            </motion.h2>
+            <motion.p className="proj-sub" variants={lineIn}>
+              <span aria-hidden="true">&gt;</span> Explore my work across web and games.
+            </motion.p>
+          </div>
+          <motion.div className="proj-switch" role="group" aria-label="Jump to" variants={lineIn}>
+            {Object.entries(KINDS).map(([key, label]) => (
+              <button key={key} type="button" aria-pressed={kind === key} onClick={() => go(FIRST[key])}>
+                {kind === key && <motion.span className="proj-switch-on" layoutId="proj-switch-on" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
+                <span className="proj-switch-label">{label}</span>
+              </button>
+            ))}
+          </motion.div>
+        </motion.header>
+
+        <div className="proj-viewport">
+          <motion.ol className="proj-track" ref={trackRef} style={wide ? { x } : undefined}>
+            {PROJECTS.map((p, i) => (
+              <Card key={p.title} project={p} index={i} total={n} along={along} wide={wide} onFocus={() => focusCard(i)} onReach={() => setActive(i)} />
+            ))}
+          </motion.ol>
+        </div>
+
+        {wide && (
+          <div className="proj-foot" aria-hidden="true">
+            <span className="proj-hint">
+              <kbd>Scroll</kbd> to browse
+            </span>
+            <span className="proj-bar">
+              <motion.i style={{ scaleX: progress }}></motion.i>
+            </span>
+            <span className="proj-count">
+              <b>{String(active + 1).padStart(2, '0')}</b> / {String(n).padStart(2, '0')}
+            </span>
           </div>
         )}
       </div>
-      {/* Background overlays to match Hero section */}
-      <div className="section-bg" aria-hidden="true">
-        <div className="circuit-pattern"></div>
-        <div className="glitch-overlay"></div>
-        <div className="scan-grid"></div>
-      </div>
-    </motion.section>
+    </section>
   );
 };
+
+/** Gives each card its own distance from the middle of the track. */
+function Card({ along, index, ...rest }) {
+  const pos = useTransform(along, (v) => v - index);
+  return <ProjectCard {...rest} index={index} pos={pos} />;
+}
 
 export default Projects;
