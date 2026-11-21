@@ -1,57 +1,674 @@
-.youtube { position: relative; padding: var(--spacing-2xl) 0; overflow: hidden; }
-.youtube.light { background: radial-gradient(circle at 20% 80%, rgba(99,102,241,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(139,92,246,0.08) 0%, transparent 50%), linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%); }
-.youtube.dark { background: radial-gradient(circle at 20% 80%, rgba(0,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,0,255,0.1) 0%, transparent 50%), linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%); }
+/* ═══════════════════════════════════════════════════════════════════════════
+   YouTube
+   Same visual language as the sections above. The channel sits on a wide
+   stage with its reel playing behind it; the stage opens up as it scrolls in.
+   Videos play over the page in YouTube's privacy-enhanced player.
+   Shared animations (glitchHover, heroNameGlitch) come from Hero.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-.youtube-container { width: 100%; max-width: var(--container-2xl); margin: 0 auto; padding: 0 clamp(16px, 3vw, 24px); box-sizing: border-box; }
-.youtube-header { text-align: center; margin-bottom: var(--spacing-lg); }
-.youtube-title { font-family: var(--font-primary); font-weight: 900; text-transform: uppercase; font-size: clamp(1.25rem, 5vw, 2rem); color: var(--current-text-primary); }
-.youtube-sub { color: var(--current-text-secondary); font-size: clamp(0.9rem, 3vw, 1.125rem); }
+.youtube {
+  --h-cyan: #00f5ff;
+  --h-magenta: #ff00d4;
+  --h-green: #39ff14;
+  --h-red: #ff2850;
+  --h-text: #eafcff;
+  --h-muted: rgba(234, 252, 255, 0.76);
+  --h-dim: rgba(234, 252, 255, 0.54);
+  --h-panel: rgba(10, 12, 24, 0.9);
+  --h-line: rgba(127, 140, 160, 0.26);
+  --h-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --ink: #07060f;
 
-.youtube-top { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(var(--spacing-md), 3vw, var(--spacing-xl)); align-items: center; margin-bottom: var(--spacing-lg); overflow: hidden; border-radius: var(--radius-lg); }
-.yt-bg { position: absolute; inset: 0; z-index: 0; }
-.yt-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.45) contrast(1.05) saturate(1.15); }
-.yt-bg-overlay { position: absolute; inset: 0; background: radial-gradient(1200px circle at 20% 80%, rgba(0,255,255,0.08), transparent 40%), radial-gradient(1000px circle at 80% 20%, rgba(255,0,255,0.08), transparent 40%), linear-gradient(0deg, rgba(0,0,0,0.35), rgba(0,0,0,0.35)); }
-.yt-left { position: relative; z-index: 1; display: grid; place-items: center; padding: clamp(16px, 2vw, 24px); }
-.yt-logo-wrap { position: relative; display: inline-grid; place-items: center; }
-.yt-logo { width: 100%; max-width: 320px; border-radius: var(--radius-lg); border: 1px solid var(--current-border-color); box-shadow: 0 12px 28px rgba(0,0,0,0.35); }
-.yt-logo-ring { position: absolute; inset: -10%; border-radius: calc(var(--radius-lg) + 16px); background: radial-gradient(600px circle at var(--px, 50%) var(--py, 50%), rgba(57,255,20,0.22), transparent 40%); mix-blend-mode: screen; pointer-events: none; }
-.yt-right { position: relative; z-index: 1; display: grid; gap: 12px; padding: clamp(16px, 2vw, 24px); }
-.yt-heading { font-weight: 900; font-size: clamp(1.25rem, 4vw, 1.75rem); color: var(--current-text-primary); }
-.yt-about { color: var(--current-text-primary); font-size: clamp(0.95rem, 2.6vw, 1.1rem); }
-.yt-stats { display: inline-flex; gap: 10px; flex-wrap: wrap; }
-.yt-pill { padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(57,255,20,0.35); color: var(--current-text-primary); background: rgba(57,255,20,0.12); font-weight: 700; }
-.yt-actions { display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.yt-sound-btn { padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.9); color: #0b0b0b; border: 1px solid rgba(255,255,255,0.9); font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.yt-channel-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(57,255,20,0.35); color: var(--current-text-primary); text-decoration: none; background: rgba(57,255,20,0.12); }
-.yt-channel-link:hover { box-shadow: 0 0 18px rgba(57,255,20,0.28); }
-.yt-sound-fab { position: absolute; right: 12px; bottom: 12px; padding: 10px 14px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #0b0b0b; border: 1px solid rgba(255,255,255,0.92); font-weight: 800; cursor: pointer; z-index: 2; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.yt-sound-fab:hover { box-shadow: 0 10px 24px rgba(0,0,0,0.25); }
+  position: relative;
+  padding: clamp(56px, 9vh, 110px) 0 clamp(72px, 12vh, 140px);
+  overflow-x: clip;
+  color: var(--h-text);
+  background:
+    radial-gradient(900px 600px at 85% 20%, rgba(255, 40, 80, 0.06), transparent 70%),
+    radial-gradient(900px 600px at 10% 85%, rgba(0, 245, 255, 0.05), transparent 70%),
+    var(--ink);
+}
 
-.videos-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(var(--spacing-md), 3vw, var(--spacing-xl)); }
-.video-card { position: relative; background: rgba(0,0,0,0.08); border: 1px solid var(--current-border-color); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.12); backdrop-filter: blur(6px); transform-style: preserve-3d; will-change: transform; }
-.video-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(135deg, rgba(0,255,255,0.12), rgba(255,0,255,0.12)); opacity: 0; transition: opacity 220ms ease; }
-.video-card:hover::before { opacity: 1; }
-.video-thumb { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; }
-.video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.98) saturate(1.05); }
-.video-tag { position: absolute; top: 12px; left: 12px; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: clamp(0.72rem, 2vw, 0.85rem); color: var(--current-text-primary); background: rgba(57,255,20,0.18); border: 1px solid rgba(57,255,20,0.35); box-shadow: 0 0 12px rgba(57,255,20,0.2); }
-.video-title { padding: 10px 18px 8px; font-size: clamp(1rem, 2.6vw, 1.25rem); color: var(--neon-green); font-weight: 800; text-shadow: 0 0 6px rgba(57,255,20,0.6); }
-.video-link { display: inline-flex; align-items: center; gap: 8px; margin: 0 18px 18px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(57,255,20,0.35); color: var(--current-text-primary); text-decoration: none; background: rgba(57,255,20,0.12); }
-.video-link:hover { box-shadow: 0 0 18px rgba(57,255,20,0.28); }
-.video-glare { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(600px circle at var(--px, 50%) var(--py, 50%), rgba(255,255,255,0.18), transparent 40%); opacity: 0; transition: opacity 0.3s ease; mix-blend-mode: screen; }
-.video-card:hover .video-glare { opacity: 1; }
+.youtube.light {
+  --h-cyan: #0891b2;
+  --h-magenta: #c026d3;
+  --h-green: #15803d;
+  --h-red: #dc2626;
+  --h-text: #0f172a;
+  --h-muted: #334155;
+  --h-dim: #64748b;
+  --h-panel: rgba(255, 255, 255, 0.92);
+  --h-line: rgba(15, 23, 42, 0.14);
+  --ink: #f4f6fb;
+}
 
-@media (max-width: 992px) { .videos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 768px) { .youtube { padding: var(--spacing-xl) 0; } .youtube-top { grid-template-columns: 1fr; } .videos-grid { grid-template-columns: 1fr; } }
+/* every cut-corner shape in the section: set --cut on the element */
+.yt-stage,
+.yt-logo,
+.yt-btn,
+.yt-sound,
+.yt-card__frame,
+.yt-card__inner,
+.yt-stats > div,
+.yt-player__box {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
 
-/* Live uploads: a heading per row, and portrait cards for Shorts */
-.videos-heading { font-family: var(--font-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; font-size: clamp(1rem, 3vw, 1.25rem); color: var(--current-text-primary); margin: var(--spacing-lg) 0 var(--spacing-md); }
-.videos-grid--shorts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.videos-grid--shorts .video-thumb { aspect-ratio: 9 / 16; }
-.videos-grid--shorts .video-title { font-size: clamp(0.85rem, 2vw, 1rem); padding: 0; margin: 10px 14px 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.videos-grid--shorts .video-link { margin: 0 14px 14px; }
-@media (max-width: 992px) { .videos-grid--shorts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.yt-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+  display: grid;
+  gap: clamp(30px, 5vh, 56px);
+}
+
+/* ───────── Heading ───────── */
+.yt-head {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+.yt-title {
+  position: relative;
+  width: fit-content;
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 900;
+  font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.3rem);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0, 245, 255, 0.45), 0 0 2px rgba(0, 245, 255, 0.6);
+}
+
+.yt-title::before,
+.yt-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.yt-title::before {
+  color: var(--h-cyan);
+  transform: translate(-2px, 0);
+  animation: heroNameGlitch 4.3s steps(1) infinite;
+}
+
+.yt-title::after {
+  color: var(--h-magenta);
+  transform: translate(2px, 0);
+  animation: heroNameGlitch 3.4s steps(1) infinite reverse;
+}
+
+.youtube.light .yt-title {
+  color: var(--h-text);
+  text-shadow: none;
+}
+
+.youtube.light .yt-title::before,
+.youtube.light .yt-title::after {
+  display: none;
+}
+
+.yt-sub {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 2.5em;
+  padding: 6px 16px 6px 12px;
+  font: 700 clamp(0.8rem, 0.76rem + 0.3vw, 0.98rem) / 1.45 var(--h-mono);
+  letter-spacing: 0.04em;
+  color: var(--h-cyan);
+  background: linear-gradient(90deg, rgba(0, 245, 255, 0.14), rgba(0, 245, 255, 0) 92%);
+  border-left: 3px solid var(--h-cyan);
+}
+
+.yt-sub span {
+  color: var(--h-green);
+}
+
+/* ───────── The stage: the channel over its reel ───────── */
+.yt-stage {
+  --cut: 22px;
+  position: relative;
+  min-height: clamp(420px, 62vh, 600px);
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+  background: #05030f;
+  color: #eafcff; /* always over the dark reel, whatever the theme */
+}
+
+.yt-stage__reel {
+  position: absolute;
+  inset: 0;
+}
+
+.yt-stage__reel video,
+.yt-stage__reel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* dark from the bottom and the left, where the words sit, with a scan pattern over the picture */
+.yt-stage__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px),
+    linear-gradient(to top, rgba(5, 3, 15, 0.96) 0%, rgba(5, 3, 15, 0.7) 42%, rgba(5, 3, 15, 0.2) 100%),
+    linear-gradient(to right, rgba(5, 3, 15, 0.75) 0%, transparent 70%);
+}
+
+.yt-stage__content {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  padding: clamp(22px, 4vw, 52px);
+}
+
+.yt-logo {
+  --cut: 14px;
+  width: clamp(92px, 12vw, 150px);
+  padding: 2px;
+  background: linear-gradient(135deg, var(--h-cyan), var(--h-magenta));
+  box-shadow: 0 0 30px rgba(255, 0, 212, 0.3);
+}
+
+.yt-logo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px);
+}
+
+.yt-about {
+  display: grid;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.yt-about h3 {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 900;
+  font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.3rem);
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-shadow: 0 2px 18px rgba(5, 3, 15, 0.9);
+}
+
+.yt-about > p {
+  margin: 0;
+  font-size: clamp(1rem, 0.95rem + 0.2vw, 1.1rem);
+  line-height: 1.6;
+  color: rgba(234, 252, 255, 0.86);
+  text-shadow: 0 1px 10px rgba(5, 3, 15, 0.9);
+  text-wrap: pretty;
+}
+
+/* the channel's totals, live from the API */
+.yt-stats {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.yt-stats > div {
+  --cut: 10px;
+  min-width: 120px;
+  padding: 10px 16px 12px;
+  background: rgba(5, 3, 15, 0.7);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  backdrop-filter: blur(6px);
+}
+
+.yt-stats dt {
+  font: 700 0.64rem var(--h-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(234, 252, 255, 0.6);
+}
+
+.yt-stats dd {
+  margin: 2px 0 0;
+  font-family: var(--font-primary);
+  font-weight: 900;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: #00f5ff;
+  text-shadow: 0 0 16px rgba(0, 245, 255, 0.45);
+}
+
+/* shown instead of the totals while the API is unavailable */
+.yt-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.yt-chips li {
+  padding: 6px 12px;
+  font: 700 0.74rem var(--h-mono);
+  letter-spacing: 0.06em;
+  color: #eafcff;
+  background: rgba(5, 3, 15, 0.7);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.yt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.yt-btn {
+  --cut: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 20px;
+  font: 800 0.8rem var(--font-primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #eafcff;
+  background: rgba(5, 3, 15, 0.7);
+  border: 1px solid rgba(234, 252, 255, 0.3);
+  backdrop-filter: blur(6px);
+}
+
+.yt-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.yt-btn--primary {
+  color: #ffffff;
+  background: #ff2850;
+  border-color: transparent;
+  box-shadow: 0 0 24px rgba(255, 40, 80, 0.4);
+}
+
+.yt-btn:hover {
+  animation: glitchHover 0.5s ease-in-out infinite;
+}
+
+.yt-btn:focus-visible,
+.yt-sound:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.yt-sound {
+  --cut: 8px;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(234, 252, 255, 0.3);
+  font: 700 0.7rem var(--h-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #eafcff;
+  background: rgba(5, 3, 15, 0.65);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+
+.yt-sound[aria-pressed="true"] {
+  color: #04121a;
+  background: #00f5ff;
+  border-color: transparent;
+}
+
+.yt-sound svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (min-width: 720px) {
+  .yt-stage__content {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: end;
+    gap: clamp(24px, 3vw, 40px);
+  }
+}
+
+/* ───────── Rows of videos ───────── */
+.yt-row {
+  display: grid;
+  gap: 18px;
+}
+
+.yt-row__head {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--h-line);
+  font-family: var(--font-primary);
+  font-weight: 800;
+  font-size: clamp(1rem, 0.92rem + 0.4vw, 1.25rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--h-text);
+}
+
+.yt-row__head a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 0.7rem var(--h-mono);
+  letter-spacing: 0.14em;
+  color: var(--h-cyan);
+  text-decoration: none;
+}
+
+.yt-row__head svg {
+  width: 14px;
+  height: 14px;
+}
+
+.yt-row__head a:hover {
+  color: var(--h-text);
+}
+
+.yt-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.yt-card__link {
+  display: block;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.yt-card__frame {
+  --cut: 14px;
+  display: block;
+  height: 100%;
+  padding: 1px;
+  background: var(--h-line);
+  transition: background 250ms;
+}
+
+.yt-card__inner {
+  --cut: 13px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  background: var(--h-panel);
+}
+
+.yt-card__thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #05030f;
+}
+
+.yt-card--short .yt-card__thumb {
+  aspect-ratio: 4 / 5; /* the shape of YouTube's portrait thumbnails */
+}
+
+.yt-card__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), filter 300ms;
+}
+
+.yt-card__play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: rgba(255, 40, 80, 0.92);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 250ms, transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.yt-card__play svg {
+  width: 24px;
+  height: 24px;
+}
+
+.yt-card__body {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 14px 16px 16px;
+}
+
+.yt-card__meta {
+  font: 700 0.66rem var(--h-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--h-magenta);
+}
+
+.yt-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--font-secondary);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--h-text);
+}
+
+.yt-card--short .yt-card__title {
+  font-size: 0.92rem;
+}
+
+.yt-card__link:hover .yt-card__frame,
+.yt-card__link:focus-visible .yt-card__frame {
+  background: linear-gradient(135deg, var(--h-red), var(--h-magenta));
+}
+
+.yt-card__link:hover .yt-card__thumb img {
+  transform: scale(1.05);
+  filter: brightness(0.75);
+}
+
+.yt-card__link:hover .yt-card__play,
+.yt-card__link:focus-visible .yt-card__play {
+  opacity: 1;
+  transform: none;
+}
+
+.yt-card__link:focus-visible {
+  outline: 2px solid var(--h-text);
+  outline-offset: 3px;
+}
+
+/* Shorts: a strip you can swipe on phones */
+.yt-grid--shorts {
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(170px, 46%);
+  grid-template-columns: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.yt-grid--shorts::-webkit-scrollbar {
+  display: none;
+}
+
+.yt-grid--shorts > li {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .yt-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .yt-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .yt-grid--shorts {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+
+/* ───────── The player over the page ───────── */
+.yt-player {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.yt-player__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 2, 10, 0.86);
+  backdrop-filter: blur(6px);
+}
+
+.yt-player__box {
+  --cut: 16px;
+  position: relative;
+  width: min(1100px, 100%, (100vh - 120px) * 16 / 9);
+  padding: 1px;
+  background: linear-gradient(135deg, var(--h-cyan), var(--h-magenta));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.yt-player__box--short {
+  width: min(420px, 100%, (100vh - 120px) * 9 / 16);
+}
+
+.yt-player__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 16px;
+  background: #0c0d1a;
+}
+
+.yt-player__bar p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 700 0.8rem var(--h-mono);
+  letter-spacing: 0.04em;
+  color: #eafcff;
+}
+
+.yt-player__bar a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 0.68rem var(--h-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #00f5ff;
+}
+
+.yt-player__bar a svg {
+  width: 14px;
+  height: 14px;
+}
+
+.yt-player__bar button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(234, 252, 255, 0.24);
+  color: #eafcff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.yt-player__bar button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.yt-player__bar button:focus-visible,
+.yt-player__bar a:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.yt-player__screen {
+  aspect-ratio: 16 / 9;
+  background: #000000;
+}
+
+.yt-player__box--short .yt-player__screen {
+  aspect-ratio: 9 / 16;
+}
+
+.yt-player__screen iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .yt-video { filter: brightness(0.5); }
-  .video-card::before, .video-glare, .yt-logo-ring { display: none; }
+  .yt-title::before,
+  .yt-title::after {
+    animation: none;
+  }
 }
