@@ -1,109 +1,363 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Hackathon Wins
+   Same visual language as the sections above, with gold for the trophies.
+   Each win is a row: the photo (drifting with the scroll) beside the story;
+   rows alternate sides on wide screens.
+   Shared animations (glitchHover, heroNameGlitch) come from Hero.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .posts {
+  --h-cyan: #00f5ff;
+  --h-magenta: #ff00d4;
+  --h-green: #39ff14;
+  --h-gold: #ffc94d;
+  --h-text: #eafcff;
+  --h-muted: rgba(234, 252, 255, 0.76);
+  --h-dim: rgba(234, 252, 255, 0.54);
+  --h-panel: rgba(10, 12, 24, 0.9);
+  --h-line: rgba(127, 140, 160, 0.26);
+  --h-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --ink: #07060f;
+
   position: relative;
-  padding: var(--spacing-2xl) 0;
-  overflow: hidden;
+  padding: clamp(56px, 9vh, 110px) 0 clamp(72px, 12vh, 140px);
+  overflow-x: clip;
+  color: var(--h-text);
+  background:
+    radial-gradient(900px 600px at 15% 30%, rgba(255, 201, 77, 0.05), transparent 70%),
+    radial-gradient(900px 600px at 85% 75%, rgba(255, 0, 212, 0.05), transparent 70%),
+    var(--ink);
 }
+
 .posts.light {
-  background: radial-gradient(
-      circle at 20% 80%,
-      rgba(99, 102, 241, 0.08) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(139, 92, 246, 0.08) 0%,
-      transparent 50%
-    ),
-    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
-}
-.posts.dark {
-  background: radial-gradient(
-      circle at 20% 80%,
-      rgba(0, 255, 255, 0.1) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(255, 0, 255, 0.1) 0%,
-      transparent 50%
-    ),
-    linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  --h-cyan: #0891b2;
+  --h-magenta: #c026d3;
+  --h-green: #15803d;
+  --h-gold: #a16207;
+  --h-text: #0f172a;
+  --h-muted: #334155;
+  --h-dim: #64748b;
+  --h-panel: rgba(255, 255, 255, 0.92);
+  --h-line: rgba(15, 23, 42, 0.14);
+  --ink: #f4f6fb;
 }
 
-.posts-container {
+/* every cut-corner shape in the section: set --cut on the element */
+.win-photo__frame,
+.win-photo__inner,
+.win-badge,
+.win-link {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+
+.posts-wrap {
   width: 100%;
-  max-width: var(--container-2xl);
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 clamp(16px, 3vw, 24px);
-  box-sizing: border-box;
+  padding: 0 clamp(16px, 4vw, 48px);
+  display: grid;
+  gap: clamp(36px, 6vh, 64px);
 }
 
-.posts-header { text-align: center; margin-bottom: var(--spacing-lg); }
+/* ───────── Heading ───────── */
+.posts-head {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
 .posts-title {
+  position: relative;
+  width: fit-content;
+  margin: 0;
   font-family: var(--font-primary);
   font-weight: 900;
+  font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.3rem);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  font-size: clamp(1.25rem, 5vw, 2rem);
-  color: var(--current-text-primary);
-}
-.posts-sub { color: var(--current-text-secondary); font-size: clamp(0.9rem, 3vw, 1.125rem); }
-
-.posts-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(var(--spacing-md), 3vw, var(--spacing-xl));
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0, 245, 255, 0.45), 0 0 2px rgba(0, 245, 255, 0.6);
 }
 
-.post-card {
-  position: relative;
-  background: rgba(0,0,0,0.08);
-  border: 1px solid var(--current-border-color, rgba(255,255,255,0.12));
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  backdrop-filter: blur(6px);
-}
-
-.post-thumb { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; }
-.post-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.98) saturate(1.05); }
-.post-tag {
+.posts-title::before,
+.posts-title::after {
+  content: attr(data-text);
   position: absolute;
-  top: 12px;
-  left: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: clamp(0.72rem, 2vw, 0.85rem);
-  color: var(--current-text-primary);
-  background: rgba(57,255,20,0.18);
-  border: 1px solid rgba(57,255,20,0.35);
-  box-shadow: 0 0 12px rgba(57,255,20,0.2);
+  inset: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 
-.post-meta { display: flex; align-items: center; gap: 10px; padding: 16px 18px 0; color: var(--current-text-secondary); }
-.meta-item { display: inline-flex; align-items: center; gap: 6px; font-size: clamp(0.75rem, 2vw, 0.875rem); }
-.meta-sep { opacity: 0.6; }
-
-.post-title { padding: 8px 18px 0; font-size: clamp(1rem, 2.6vw, 1.25rem); color: var(--neon-green); font-weight: 800; text-shadow: 0 0 6px rgba(57,255,20,0.6); }
-.post-excerpt { padding: 6px 18px 12px; color: var(--current-text-primary); font-size: clamp(0.9rem, 2.4vw, 1.05rem); }
-/* Win details: team, format, track */
-/* Team photos are often portrait; keep faces in frame instead of cropping to the middle. */
-.post-thumb img { object-position: center 22%; }
-.post-tag { display: inline-flex; align-items: center; gap: 6px; }
-.post-meta { flex-wrap: wrap; row-gap: 4px; }
-.post-facts { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px 14px; margin: 0; }
-.post-facts li { padding: 4px 10px; border-radius: 999px; font-size: clamp(0.72rem, 2vw, 0.82rem); font-weight: 600; color: var(--current-text-secondary); border: 1px solid var(--current-border-color, rgba(255,255,255,0.12)); background: rgba(255,255,255,0.04); }
-/* Cards in a row share one height; keep each button on the bottom edge. */
-.post-card { display: flex; flex-direction: column; }
-.post-excerpt { flex: 1; }
-.post-link { align-self: flex-start; }
-.post-link { display: inline-flex; align-items: center; gap: 8px; margin: 0 18px 18px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(57,255,20,0.35); color: var(--current-text-primary); text-decoration: none; background: rgba(57,255,20,0.12); }
-.post-link:hover { box-shadow: 0 0 18px rgba(57,255,20,0.28); }
-
-@media (max-width: 992px) {
-  .posts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.posts-title::before {
+  color: var(--h-cyan);
+  transform: translate(-2px, 0);
+  animation: heroNameGlitch 4.7s steps(1) infinite;
 }
-@media (max-width: 768px) {
-  .posts { padding: var(--spacing-xl) 0; }
-  .posts-grid { grid-template-columns: 1fr; }
+
+.posts-title::after {
+  color: var(--h-magenta);
+  transform: translate(2px, 0);
+  animation: heroNameGlitch 3.8s steps(1) infinite reverse;
+}
+
+.posts.light .posts-title {
+  color: var(--h-text);
+  text-shadow: none;
+}
+
+.posts.light .posts-title::before,
+.posts.light .posts-title::after {
+  display: none;
+}
+
+.posts-sub {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 2.5em;
+  padding: 6px 16px 6px 12px;
+  font: 700 clamp(0.8rem, 0.76rem + 0.3vw, 0.98rem) / 1.45 var(--h-mono);
+  letter-spacing: 0.04em;
+  color: var(--h-cyan);
+  background: linear-gradient(90deg, rgba(0, 245, 255, 0.14), rgba(0, 245, 255, 0) 92%);
+  border-left: 3px solid var(--h-cyan);
+}
+
+.posts-sub span {
+  color: var(--h-green);
+}
+
+/* ───────── The wins ───────── */
+.wins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(48px, 9vh, 96px);
+}
+
+.win {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: center;
+}
+
+.win-photo {
+  position: relative;
+}
+
+.win-photo__frame {
+  --cut: 20px;
+  display: block;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--h-gold), color-mix(in srgb, var(--h-gold) 20%, transparent) 60%, var(--h-magenta));
+  filter: drop-shadow(0 0 24px rgba(255, 201, 77, 0.18));
+}
+
+.win-photo__inner {
+  --cut: 19px;
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #0b0d18;
+}
+
+/* taller than its window, so it can drift with the scroll */
+.win-photo__inner img {
+  position: absolute;
+  left: 0;
+  top: -8%;
+  width: 100%;
+  height: 116%;
+  object-fit: cover;
+}
+
+.win-photo__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--h-gold);
+  background: radial-gradient(circle, rgba(255, 201, 77, 0.14), transparent 60%);
+}
+
+.win-photo__empty svg {
+  width: 64px;
+  height: 64px;
+}
+
+.win-badge {
+  --cut: 9px;
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font: 800 0.74rem var(--font-primary);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1a1200;
+  background: linear-gradient(135deg, #ffe08a, #ffc94d 50%, #e0a92e);
+  box-shadow: 0 0 22px rgba(255, 201, 77, 0.45);
+}
+
+.win-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.win-body {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 14px;
+}
+
+/* the line above the title, as a game would announce it */
+.win-unlock {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font: 700 0.7rem var(--h-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--h-dim);
+}
+
+.win-unlock b {
+  padding: 3px 9px;
+  color: var(--h-gold);
+  border: 1px solid color-mix(in srgb, var(--h-gold) 50%, transparent);
+  background: color-mix(in srgb, var(--h-gold) 10%, transparent);
+}
+
+.win-body h3 {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 900;
+  font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.3rem);
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  color: var(--h-text);
+}
+
+.win-meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font: 500 0.8rem var(--h-mono);
+  letter-spacing: 0.04em;
+  color: var(--h-dim);
+}
+
+.win-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.win-meta svg {
+  width: 15px;
+  height: 15px;
+  color: var(--h-gold);
+}
+
+.win-excerpt {
+  margin: 0;
+  max-width: 58ch;
+  font-size: clamp(1rem, 0.95rem + 0.2vw, 1.1rem);
+  line-height: 1.65;
+  color: var(--h-muted);
+  text-wrap: pretty;
+}
+
+.win-facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.win-facts li {
+  padding: 6px 12px;
+  font: 700 0.74rem var(--h-mono);
+  letter-spacing: 0.04em;
+  color: var(--h-text);
+  background: rgba(127, 140, 160, 0.1);
+  border: 1px solid var(--h-line);
+}
+
+.win-facts li:hover {
+  animation: glitchHover 0.5s ease-in-out infinite;
+}
+
+.win-link {
+  --cut: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  margin-top: 4px;
+  padding: 0 18px;
+  font: 800 0.76rem var(--font-primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--h-text);
+  background: var(--h-panel);
+  border: 1px solid color-mix(in srgb, var(--h-gold) 50%, transparent);
+  transition: background 200ms, color 200ms;
+}
+
+.win-link svg {
+  width: 16px;
+  height: 16px;
+  color: var(--h-gold);
+}
+
+.win-link:hover {
+  color: #1a1200;
+  background: var(--h-gold);
+}
+
+.win-link:hover svg {
+  color: inherit;
+}
+
+.win-link:focus-visible {
+  outline: 2px solid var(--h-text);
+  outline-offset: 3px;
+}
+
+/* ───────── Wide: photo beside the story, alternating sides ───────── */
+@media (min-width: 900px) {
+  .win {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  }
+
+  .win--flip {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+
+  .win--flip .win-photo {
+    order: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .posts-title::before,
+  .posts-title::after {
+    animation: none;
+  }
 }
