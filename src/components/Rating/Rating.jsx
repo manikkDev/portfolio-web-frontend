@@ -1,223 +1,286 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { useTheme } from '../../hooks/useTheme'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../../api/client'
+import { useTheme } from '../../hooks/useTheme'
+import { lineIn } from '../../utils/reveal'
+import { timeAgo } from '../../utils/timeAgo'
 import './Rating.css'
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.6, staggerChildren: 0.12 } }
+const WORDS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent']
+const STAR = 'M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z'
+const EMPTY_STATS = { average: 0, total: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } }
+const LIMIT = { name: 50, comment: 500 }
+
+function Stars({ value, size = 16 }) {
+  return (
+    <span className="rt-stars" role="img" aria-label={`${value} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <svg key={s} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={s <= Math.round(value) ? 'is-on' : ''}>
+          <path d={STAR} />
+        </svg>
+      ))}
+    </span>
+  )
 }
 
-const titleVariants = {
-  hidden: { y: 24, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } }
-}
+// A steady colour per name, so a reviewer's initial always looks the same.
+const hue = (name) => [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7)
 
-const cardVariants = {
-  hidden: { y: 32, opacity: 0, scale: 0.98 },
-  visible: { y: 0, opacity: 1, scale: 1, transition: { duration: 0.55, ease: 'easeOut' } }
-}
+/**
+ * The five stars you rate with. Behaves as one radio group: arrows move between stars,
+ * and a pick sends out a few sparks from the chosen star.
+ */
+function StarPicker({ value, onChange, disabled }) {
+  const [hover, setHover] = useState(0)
+  const [burst, setBurst] = useState(0)
+  const shown = hover || value
 
-const StarIcon = ({ filled, hovered, onClick, onMouseEnter, onMouseLeave }) => (
-  <button
-    type="button"
-    className={`star-btn ${filled ? 'filled' : ''} ${hovered ? 'hovered' : ''}`}
-    onClick={onClick}
-    onMouseEnter={onMouseEnter}
-    onMouseLeave={onMouseLeave}
-    aria-label={`Rate ${filled ? 'filled' : 'empty'}`}
-  >
-    <svg width="28" height="28" viewBox="0 0 24 24" fill={filled || hovered ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/>
-    </svg>
-  </button>
-)
+  const pick = (n) => {
+    onChange(n)
+    setBurst((b) => b + 1)
+  }
+  const keys = (e) => {
+    const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key]
+    if (!step) return
+    e.preventDefault()
+    const next = Math.min(5, Math.max(1, (value || 0) + step))
+    pick(next)
+    e.currentTarget.parentElement.children[next - 1]?.focus()
+  }
+
+  return (
+    <div className="rt-picker">
+      <div className="rt-picker__stars" role="radiogroup" aria-label="Your rating" onMouseLeave={() => setHover(0)}>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            type="button"
+            role="radio"
+            aria-checked={value === n}
+            aria-label={`${n} star${n > 1 ? 's' : ''}, ${WORDS[n]}`}
+            tabIndex={value ? (value === n ? 0 : -1) : n === 1 ? 0 : -1}
+            className={`rt-star${n <= shown ? ' is-on' : ''}`}
+            onClick={() => pick(n)}
+            onMouseEnter={() => setHover(n)}
+            onKeyDown={keys}
+            disabled={disabled}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d={STAR} />
+            </svg>
+            {value === n && burst > 0 && (
+              <span className="rt-sparks" key={burst} aria-hidden="true">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <i key={i} style={{ '--a': `${i * 45}deg` }} />
+                ))}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      <p className="rt-picker__word" aria-hidden="true">
+        {shown ? `${shown} / 5 · ${WORDS[shown]}` : 'Pick 1 to 5 stars'}
+      </p>
+    </div>
+  )
+}
 
 const Rating = () => {
   const { theme } = useTheme()
-  const sectionRef = useRef(null)
-  const inView = useInView(sectionRef, { threshold: 0.2 })
-
   const [ratings, setRatings] = useState([])
-  const [stats, setStats] = useState({ average: 0, total: 0, distribution: {} })
-  const [selectedRating, setSelectedRating] = useState(0)
-  const [hoveredRating, setHoveredRating] = useState(0)
+  const [stats, setStats] = useState(EMPTY_STATS)
+  const [loaded, setLoaded] = useState('loading') // loading | ready | offline
+  const [rating, setRating] = useState(0)
   const [name, setName] = useState('')
   const [comment, setComment] = useState('')
   const [status, setStatus] = useState({ type: '', message: '' })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [sending, setSending] = useState(false)
+  const formRef = useRef(null)
 
-  const loadData = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
-      const [ratingsRes, statsRes] = await Promise.all([
-        api.getRatings(1, 6),
-        api.getRatingStats()
-      ])
-      setRatings(ratingsRes.data.ratings || [])
-      setStats(statsRes.data || { average: 0, total: 0, distribution: {} })
+      const [list, summary] = await Promise.all([api.getRatings(1, 6), api.getRatingStats()])
+      setRatings(list.data.ratings || [])
+      setStats(summary.data || EMPTY_STATS)
+      setLoaded('ready')
     } catch {
-      // Silent fail — ratings are non-critical
+      setLoaded('offline')
     }
   }, [])
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
+    load()
+  }, [load])
 
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault()
-    if (selectedRating === 0) {
-      setStatus({ type: 'error', message: 'Please select a rating' })
+    if (!rating) {
+      setStatus({ type: 'error', message: 'Pick a star rating first.' })
+      formRef.current?.querySelector('[role="radio"]')?.focus()
       return
     }
-    setIsSubmitting(true)
+    setSending(true)
     setStatus({ type: '', message: '' })
-
     try {
-      await api.submitRating({
-        name: name.trim() || 'Anonymous',
-        rating: selectedRating,
-        comment: comment.trim() || null
-      })
-      setStatus({ type: 'success', message: 'Thank you for your rating! 🎉' })
-      setSelectedRating(0)
+      await api.submitRating({ name: name.trim() || 'Anonymous', rating, comment: comment.trim() || null })
+      setStatus({ type: 'success', message: 'Thanks for rating! Your review is up.' })
+      setRating(0)
       setName('')
       setComment('')
-      loadData() // Refresh
+      load()
     } catch (err) {
-      setStatus({ type: 'error', message: err.message || 'Failed to submit rating' })
+      setStatus({
+        type: 'error',
+        message: err.offline ? `${err.message} Your rating was not saved — please try again in a minute.` : err.details?.join('. ') || err.message
+      })
     } finally {
-      setIsSubmitting(false)
+      setSending(false)
     }
   }
 
-  const timeAgo = (dateStr) => {
-    const diff = Date.now() - new Date(dateStr).getTime()
-    const mins = Math.floor(diff / 60000)
-    if (mins < 1) return 'Just now'
-    if (mins < 60) return `${mins}m ago`
-    const hrs = Math.floor(mins / 60)
-    if (hrs < 24) return `${hrs}h ago`
-    const days = Math.floor(hrs / 24)
-    if (days < 30) return `${days}d ago`
-    return `${Math.floor(days / 30)}mo ago`
-  }
+  const max = Math.max(1, ...Object.values(stats.distribution || {}))
 
   return (
-    <motion.section
-      id="rating"
-      className={`rating-section ${theme}`}
-      ref={sectionRef}
-      variants={containerVariants}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
-    >
-      <div className="rating-container">
-        <motion.div className="rating-header" variants={titleVariants}>
-          <h2 className="rating-title">Rate This Website</h2>
-          <p className="rating-sub">Your feedback helps me improve!</p>
-        </motion.div>
+    <section id="rating" className={`rating-section ${theme}`}>
+      <div className="rt-wrap">
+        <motion.header className="rt-head" initial="hidden" whileInView="visible" viewport={{ amount: 0.6 }} transition={{ staggerChildren: 0.12 }}>
+          <motion.h2 className="rt-title" variants={lineIn} data-text="Rate This Website">
+            Rate This Website
+          </motion.h2>
+          <motion.p className="rt-sub" variants={lineIn}>
+            <span aria-hidden="true">&gt;</span> Your feedback helps me improve!
+          </motion.p>
+        </motion.header>
 
-        <div className="rating-grid">
-          {/* Submit Form */}
-          <motion.article className="rating-card rating-form-card" variants={cardVariants}>
-            <div className="rating-stats-bar">
-              <span className="stats-avg">{stats.average || '—'}</span>
-              <div className="stats-stars">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <svg key={s} width="16" height="16" viewBox="0 0 24 24" fill={s <= Math.round(stats.average) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className="stats-star">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                ))}
+        <div className="rt-grid">
+          <motion.div
+            className="rt-panel"
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="rt-panel__inner">
+              {/* the score so far */}
+              <div className="rt-score">
+                <div className="rt-score__big">
+                  <b>{stats.total ? stats.average.toFixed(1) : '—'}</b>
+                  <Stars value={stats.average} size={18} />
+                  <span>
+                    {stats.total} rating{stats.total === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <ul className="rt-bars" aria-label="Ratings by stars">
+                  {[5, 4, 3, 2, 1].map((s) => (
+                    <li key={s}>
+                      <span>{s}</span>
+                      <i>
+                        <motion.b
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${((stats.distribution?.[s] || 0) / max) * 100}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.9, delay: (5 - s) * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                        />
+                      </i>
+                      <em>{stats.distribution?.[s] || 0}</em>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <span className="stats-count">({stats.total} ratings)</span>
+
+              <form className="rt-form" onSubmit={submit} ref={formRef} noValidate>
+                <StarPicker
+                  value={rating}
+                  onChange={(n) => {
+                    setRating(n)
+                    setStatus((st) => (st.type === 'error' ? { type: '', message: '' } : st))
+                  }}
+                  disabled={sending}
+                />
+                <div className="rt-field">
+                  <label htmlFor="rt-name">
+                    Name <em>optional</em>
+                  </label>
+                  <input id="rt-name" type="text" autoComplete="nickname" value={name} onChange={(e) => setName(e.target.value)} maxLength={LIMIT.name} disabled={sending} placeholder="Anonymous" />
+                </div>
+                <div className="rt-field">
+                  <label htmlFor="rt-comment">
+                    Comment <em>optional</em>
+                    <b>{comment.length} / {LIMIT.comment}</b>
+                  </label>
+                  <textarea id="rt-comment" rows="3" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={LIMIT.comment} disabled={sending} />
+                </div>
+
+                <AnimatePresence>
+                  {status.message && (
+                    <motion.p
+                      className={`rt-status rt-status--${status.type}`}
+                      role={status.type === 'error' ? 'alert' : 'status'}
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                    >
+                      {status.message}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+
+                <button className={`rt-btn${sending ? ' is-sending' : ''}`} type="submit" disabled={sending}>
+                  {sending ? 'Submitting…' : 'Submit rating'}
+                </button>
+              </form>
             </div>
+          </motion.div>
 
-            <form className="rating-form" onSubmit={handleSubmit}>
-              <div className="stars-row">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <StarIcon
-                    key={star}
-                    filled={star <= selectedRating}
-                    hovered={star <= hoveredRating}
-                    onClick={() => setSelectedRating(star)}
-                    onMouseEnter={() => setHoveredRating(star)}
-                    onMouseLeave={() => setHoveredRating(0)}
-                  />
-                ))}
-              </div>
-
-              <input
-                className="rating-input"
-                type="text"
-                placeholder="Your name (optional)"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={50}
-              />
-              <textarea
-                className="rating-textarea"
-                rows="3"
-                placeholder="Leave a comment (optional)"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                maxLength={500}
-              />
-
-              <AnimatePresence>
-                {status.message && (
-                  <motion.div
-                    className={`rating-status ${status.type}`}
-                    initial={{ opacity: 0, y: -10 }}
+          <motion.aside
+            className="rt-reviews"
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            aria-label="Recent reviews"
+          >
+            <h3>Recent Reviews</h3>
+            {loaded === 'ready' && ratings.length > 0 ? (
+              <ul>
+                {ratings.map((r, i) => (
+                  <motion.li
+                    key={r.id}
+                    className="rt-review"
+                    initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.45, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    {status.message}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <button className="rating-btn" type="submit" disabled={isSubmitting || selectedRating === 0}>
-                {isSubmitting ? 'Submitting...' : 'Submit Rating'}
-              </button>
-            </form>
-          </motion.article>
-
-          {/* Recent Reviews */}
-          <motion.article className="rating-card rating-reviews-card" variants={cardVariants}>
-            <h3 className="card-title">Recent Reviews</h3>
-            <div className="reviews-list">
-              {ratings.length === 0 ? (
-                <p className="no-reviews">No reviews yet. Be the first!</p>
-              ) : (
-                ratings.map((r) => (
-                  <div key={r.id} className="review-item">
-                    <div className="review-top">
-                      <span className="review-name">{r.name}</span>
-                      <span className="review-time">{timeAgo(r.created_at)}</span>
+                    <span className="rt-review__avatar" style={{ '--hue': hue(r.name || 'A') }} aria-hidden="true">
+                      {(r.name || 'A').trim().charAt(0).toUpperCase()}
+                    </span>
+                    <div>
+                      <p className="rt-review__top">
+                        <b>{r.name}</b>
+                        <span>{timeAgo(r.created_at)}</span>
+                      </p>
+                      <Stars value={r.rating} size={14} />
+                      {r.comment && <p className="rt-review__text">{r.comment}</p>}
                     </div>
-                    <div className="review-stars">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill={s <= r.rating ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`mini-star ${s <= r.rating ? 'filled' : ''}`}>
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                        </svg>
-                      ))}
-                    </div>
-                    {r.comment && <p className="review-comment">{r.comment}</p>}
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.article>
+                  </motion.li>
+                ))}
+              </ul>
+            ) : (
+              <div className="rt-empty">
+                <Stars value={0} size={22} />
+                <p>
+                  {loaded === 'offline'
+                    ? 'Reviews could not be loaded right now.'
+                    : loaded === 'loading'
+                      ? 'Loading reviews…'
+                      : 'No reviews yet. Be the first!'}
+                </p>
+              </div>
+            )}
+          </motion.aside>
         </div>
       </div>
-
-      <div className="section-bg" aria-hidden="true">
-        <div className="circuit-pattern"></div>
-        <div className="scan-grid"></div>
-      </div>
-    </motion.section>
+    </section>
   )
 }
 
