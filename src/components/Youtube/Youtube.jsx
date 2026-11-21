@@ -2,7 +2,9 @@ import { motion, useInView } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import fearlessVideo from '../../assets/fearless.mp4'
 import swertzLogo from '../../assets/swertz-logo.jpg'
+import { api } from '../../api/client'
 import { useTheme } from '../../hooks/useTheme'
+import { timeAgo } from '../../utils/timeAgo'
 import './Youtube.css'
 
 const containerVariants = {
@@ -69,7 +71,8 @@ const VideoCard = ({ video }) => {
     >
       <div className="video-thumb">
         <img src={video.thumbnail} alt={video.title} loading="lazy" />
-        <span className="video-tag">{video.tag}</span>
+        {/* Live uploads have no hand-written tag, so they show how recent they are. */}
+        <span className="video-tag">{video.tag ?? timeAgo(video.published_at)}</span>
       </div>
       <h3 className="video-title">{video.title}</h3>
       <a className="video-link" href={video.link} target="_blank" rel="noreferrer">Watch →</a>
@@ -82,7 +85,20 @@ const Youtube = () => {
   const { theme } = useTheme()
   const sectionRef = useRef(null)
   const inView = useInView(sectionRef, { threshold: 0.2 })
-  const videos = useMemo(() => videosData, [])
+  // Starts with the hand-picked videos so the section is never empty, then swaps in
+  // the channel's latest uploads once the API answers (it refreshes them hourly).
+  const [feed, setFeed] = useState({ videos: videosData, shorts: [] })
+  useEffect(() => {
+    let alive = true
+    api.getVideos()
+      .then(({ data }) => {
+        if (alive && data?.videos?.length) {
+          setFeed({ videos: data.videos.slice(0, 3), shorts: (data.shorts ?? []).slice(0, 4) })
+        }
+      })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
   const [soundOn, setSoundOn] = useState(false)
   const shouldPlayVideo = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -181,11 +197,23 @@ const Youtube = () => {
           <button className="yt-sound-fab" type="button" onClick={toggleSound} aria-pressed={soundOn} aria-label="Toggle background video sound">{soundOn ? 'Sound: On' : 'Sound: Off'}</button>
         </div>
 
+        <h3 className="videos-heading">Latest Videos</h3>
         <div className="videos-grid">
-          {videos.map((v) => (
-            <VideoCard key={v.title} video={v} />
+          {feed.videos.map((v) => (
+            <VideoCard key={v.link} video={v} />
           ))}
         </div>
+
+        {feed.shorts.length > 0 && (
+          <>
+            <h3 className="videos-heading">Latest Shorts</h3>
+            <div className="videos-grid videos-grid--shorts">
+              {feed.shorts.map((v) => (
+                <VideoCard key={v.link} video={v} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="section-bg" aria-hidden="true">
