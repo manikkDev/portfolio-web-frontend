@@ -23,14 +23,15 @@
   padding: clamp(48px, 9vh, 110px) 0 clamp(72px, 12vh, 140px);
   overflow-x: clip;
   color: var(--h-text);
-  /* the same base as before, so the fade at the end of Experience still lands on it */
+  /* the same ink as every section below the 3D world, so no edge shows between them */
+  --ink: #07060f;
   background:
-    radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
-    linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    radial-gradient(900px 600px at 8% 30%, rgba(0, 245, 255, 0.06), transparent 70%),
+    radial-gradient(900px 600px at 92% 70%, rgba(255, 0, 212, 0.06), transparent 70%),
+    var(--ink);
 }
 
-/* a faint grid that fades in below the top edge, so the seam with Experience stays clean */
+/* a faint grid, fading in below the top edge where Experience ends */
 .projects::before {
   content: "";
   position: absolute;
@@ -52,10 +53,11 @@
   --h-dim: #64748b;
   --h-panel: rgba(255, 255, 255, 0.9);
   --h-line: rgba(8, 145, 178, 0.4);
+  --ink: #f4f6fb;
   background:
-    radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+    radial-gradient(900px 600px at 8% 30%, rgba(8, 145, 178, 0.07), transparent 70%),
+    radial-gradient(900px 600px at 92% 70%, rgba(192, 38, 211, 0.06), transparent 70%),
+    var(--ink);
 }
 
 .projects.light::before {

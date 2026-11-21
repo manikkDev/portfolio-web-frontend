@@ -1,11 +1,12 @@
 import { motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import apocalypseShot from '../../assets/projects/apocalypse.webp';
 import discmathShot from '../../assets/projects/discmath.webp';
 import healthwellShot from '../../assets/projects/healthwell.webp';
 import wecareShot from '../../assets/projects/wecare.webp';
 import { useTheme } from '../../hooks/useTheme';
 import { lineIn, useScrollIn } from '../../utils/reveal';
+import { useMedia } from '../../utils/useMedia';
 import './Projects.css';
 
 const KINDS = { web: 'Fullstack Web', game: 'Game Dev' };
@@ -93,17 +94,6 @@ const FIRST = { web: 0, game: PROJECTS.findIndex((p) => p.kind === 'game') };
 
 // Side by side and moved by the scroll only where there is room for it and motion is welcome.
 const WIDE = '(min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference)';
-
-function useMedia(query) {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const sync = () => setMatches(mq.matches);
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, [query]);
-  return matches;
-}
 
 const has = (url) => url && url !== '#';
 const host = (url) => (has(url) ? new URL(url).hostname.replace(/^www\./, '') : '');
