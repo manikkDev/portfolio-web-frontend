@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '../../hooks/useTheme'
+import { lineIn } from '../../utils/reveal'
+import { useMedia } from '../../utils/useMedia'
 import './Skills.css'
 
 /* ═══════════════════════════════════════════════════════
@@ -371,7 +373,7 @@ const BrandIcons = {
 const categories = [
   {
     id: 'frontend', title: 'Frontend', subtitle: 'UI & Framework',
-    accent: '#00f5ff', glow: 'rgba(0,245,255,0.35)', icon: '⚡',
+    accent: '#00f5ff', glow: 'rgba(0,245,255,0.35)',
     items: [
       { name: 'JavaScript', level: 95, desc: 'The language of the web. ES2023+, async/await, closures, event loop, and modern design patterns at production scale.' },
       { name: 'TypeScript', level: 88, desc: 'Type-safe development with strict mode, generics, utility types, conditional types and advanced type inference.' },
@@ -385,7 +387,7 @@ const categories = [
   },
   {
     id: 'backend', title: 'Backend', subtitle: 'Server & Database',
-    accent: '#a855f7', glow: 'rgba(168,85,247,0.35)', icon: '🛢️',
+    accent: '#a855f7', glow: 'rgba(168,85,247,0.35)',
     items: [
       { name: 'Node.js', level: 88, desc: 'Server-side JS runtime. Scalable REST/WebSocket servers, streaming, worker threads and CLI tooling.' },
       { name: 'Express.js', level: 85, desc: 'Minimal web framework: REST APIs, middleware chains, JWT auth and structured error handling.' },
@@ -399,7 +401,7 @@ const categories = [
   },
   {
     id: 'devops', title: 'DevOps', subtitle: 'Infra & Workflow',
-    accent: '#39ff14', glow: 'rgba(57,255,20,0.35)', icon: '🔧',
+    accent: '#39ff14', glow: 'rgba(57,255,20,0.35)',
     items: [
       { name: 'Git', level: 92, desc: 'Branching strategies, interactive rebase, hooks, CI pipelines and merge conflict resolution.' },
       { name: 'VS Code', level: 95, desc: 'Power user: custom extensions, snippets, multi-cursor, launch configs and integrated debugger.' },
@@ -409,7 +411,7 @@ const categories = [
   },
   {
     id: 'gamedev', title: 'Game Dev', subtitle: 'Engines & Languages',
-    accent: '#ff6b35', glow: 'rgba(255,107,53,0.35)', icon: '🎮',
+    accent: '#ff6b35', glow: 'rgba(255,107,53,0.35)',
     items: [
       { name: 'Unity Engine', level: 85, desc: 'C# scripting, physics, particle systems, custom shaders, asset bundles and mobile optimization.' },
       { name: 'Unreal Engine', level: 72, desc: 'Blueprint scripting, C++ gameplay systems, Nanite/Lumen rendering and material editor.' },
@@ -421,7 +423,7 @@ const categories = [
   },
   {
     id: 'video', title: 'Video', subtitle: 'Post-Production',
-    accent: '#ff1493', glow: 'rgba(255,20,147,0.35)', icon: '🎬',
+    accent: '#ff1493', glow: 'rgba(255,20,147,0.35)',
     items: [
       { name: 'Adobe After Effects', level: 85, desc: 'Motion graphics, VFX compositing, expressions, 3D camera tracking and plugin integration.' },
       { name: 'Adobe Premiere Pro', level: 88, desc: 'Professional NLE: color grading, audio mixing, Lumetri color science and multi-cam editing.' },
@@ -436,40 +438,51 @@ const categories = [
 ]
 
 /* ═══════════════════════════════════════════════════════
-   Responsive hook — debounced so it's reliable
+   Category icons (24 × 24, drawn with strokes)
 ═══════════════════════════════════════════════════════ */
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)')
-    setIsMobile(mq.matches)
-    const handler = (e) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isMobile
+const CATEGORY_ICON = {
+  frontend: 'M13 2 4 14h7l-1 8 9-12h-7l1-8z',
+  backend: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zm0 0v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6',
+  devops: 'M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9',
+  gamedev: 'M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-4 3.6C2.6 9.4 2 14.5 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.4-1.4A2 2 0 0 1 9.8 16h4.4a2 2 0 0 1 1.4.6L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.5-.6-6.6-.7-7.3a4 4 0 0 0-4-3.7z',
+  video: 'M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3zM6.2 5.3l3.1 3.9M12.4 3.4l3.1 4M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'
+}
+
+function CategoryIcon({ id }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d={CATEGORY_ICON[id]} />
+    </svg>
+  )
+}
+
+const tier = (level) => (level >= 88 ? 'Expert' : level >= 75 ? 'Advanced' : 'Intermediate')
+const colorOf = (skill, cat) => BrandIcons[skill.name]?.color ?? cat.accent
+
+function SkillIcon({ skill, color }) {
+  const brand = BrandIcons[skill.name]
+  if (brand) return brand.svg
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="3" fill={color + '25'} />
+      <text x="16" y="20.5" textAnchor="middle" fontSize="9" fontWeight="900" fill={color} fontFamily="monospace">
+        {skill.name.slice(0, 3).toUpperCase()}
+      </text>
+    </svg>
+  )
 }
 
 /* ═══════════════════════════════════════════════════════
-   Particle Burst — portalled to fixed position
+   A burst of sparks where a skill was clicked
 ═══════════════════════════════════════════════════════ */
 function ParticleBurst({ x, y, color }) {
   return (
-    <div
-      className="sk-burst"
-      style={{ '--px': `${x}px`, '--py': `${y}px` }}
-      aria-hidden="true"
-    >
+    <div className="sk-burst" style={{ '--px': `${x}px`, '--py': `${y}px` }} aria-hidden="true">
       {[...Array(10)].map((_, i) => (
         <div
           key={i}
           className="sk-burst__p"
-          style={{
-            '--angle': `${i * 36}deg`,
-            '--color': color,
-            '--dist': `${28 + (i % 3) * 8}px`,
-            '--delay': `${i * 0.02}s`
-          }}
+          style={{ '--angle': `${i * 36}deg`, '--color': color, '--dist': `${28 + (i % 3) * 8}px`, '--delay': `${i * 0.02}s` }}
         />
       ))}
     </div>
@@ -477,416 +490,312 @@ function ParticleBurst({ x, y, color }) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Skill Card
+   One skill
 ═══════════════════════════════════════════════════════ */
-function SkillCard({ skill, accent, glow, onSelect, isSelected }) {
-  const brand = BrandIcons[skill.name]
-  const color = brand?.color ?? accent
+function SkillTile({ skill, cat, selected, onSelect, fillOnView }) {
+  const color = colorOf(skill, cat)
   const [burst, setBurst] = useState(null)
-  const btnRef = useRef(null)
+  const timer = useRef(null)
+  useEffect(() => () => clearTimeout(timer.current), [])
 
-  const handleClick = useCallback(() => {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect()
-      setBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
-      const t = setTimeout(() => setBurst(null), 700)
-      return () => clearTimeout(t)
-    }
-    onSelect(skill)
-  }, [onSelect, skill])
-
-  const handleClickInner = () => {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect()
-      setBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
-      setTimeout(() => setBurst(null), 700)
-    }
+  const select = (e) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => setBurst(null), 700)
     onSelect(skill)
   }
 
+  const fill = { width: `${skill.level}%` }
   return (
     <>
-      <motion.button
-        ref={btnRef}
-        className={`sk-card${isSelected ? ' sk-card--active' : ''}`}
-        style={{ '--accent': color, '--glow': glow }}
-        onClick={handleClickInner}
-        whileHover="hover"
-        whileTap={{ scale: 0.91, transition: { duration: 0.12 } }}
-        variants={{ hover: { y: -5, scale: 1.04, transition: { duration: 0.22, ease: 'easeOut' } } }}
-        aria-label={`${skill.name} — click for details`}
-        aria-pressed={isSelected}
+      <button
+        type="button"
+        className={`sk-tile${selected ? ' is-selected' : ''}`}
+        style={{ '--c': color }}
+        onClick={select}
+        aria-pressed={selected}
+        aria-label={`${skill.name}, ${skill.level}% — show details`}
       >
-        <div className="sk-card__shimmer" aria-hidden="true" />
-        <div className="sk-card__icon">
-          {brand
-            ? brand.svg
-            : (
-              <svg viewBox="0 0 32 32" aria-hidden="true">
-                <rect width="32" height="32" rx="3" fill={color + '25'}/>
-                <text x="16" y="20.5" textAnchor="middle" fontSize="9" fontWeight="900" fill={color} fontFamily="monospace">
-                  {skill.name.slice(0, 3).toUpperCase()}
-                </text>
-              </svg>
-            )}
-        </div>
-        <span className="sk-card__name">{skill.name}</span>
-        <div className="sk-card__bar-wrap">
-          <motion.div
-            className="sk-card__bar"
-            style={{ '--bc': color }}
-            initial={{ width: 0 }}
-            whileInView={{ width: `${skill.level}%` }}
-            viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          />
-        </div>
-        <div className="sk-card__ring" aria-hidden="true" />
-        {isSelected && <div className="sk-card__dot" aria-hidden="true" />}
-      </motion.button>
+        <span className="sk-tile__frame">
+          <span className="sk-tile__inner">
+            <span className="sk-tile__icon"><SkillIcon skill={skill} color={color} /></span>
+            <span className="sk-tile__name">{skill.name}</span>
+            <span className="sk-tile__level">{skill.level}%</span>
+            <span className="sk-tile__bar" aria-hidden="true">
+              <motion.i
+                initial={{ width: 0 }}
+                {...(fillOnView ? { whileInView: fill, viewport: { once: true, amount: 0.6 } } : { animate: fill })}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+              />
+            </span>
+          </span>
+        </span>
+      </button>
       {burst && <ParticleBurst x={burst.x} y={burst.y} color={color} />}
     </>
   )
 }
 
 /* ═══════════════════════════════════════════════════════
-   Detail Panel Content (inner, animates on skill change)
+   What a skill is, how well I know it
 ═══════════════════════════════════════════════════════ */
-function PanelContent({ skill, category }) {
-  const brand = BrandIcons[skill.name]
-  const color = brand?.color ?? category.accent
-
+function SkillDetail({ skill, cat }) {
+  const color = colorOf(skill, cat)
   return (
     <motion.div
       key={skill.name}
-      className="sk-detail__inner"
-      initial={{ opacity: 0, y: 16 }}
+      className="sk-detail"
+      style={{ '--c': color }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+      exit={{ opacity: 0, y: -10, transition: { duration: 0.18 } }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="sk-detail__icon" style={{ borderColor: `color-mix(in srgb, ${color} 35%, transparent)`, boxShadow: `0 0 20px color-mix(in srgb, ${color} 25%, transparent)` }}>
-        {brand
-          ? brand.svg
-          : (
-            <svg viewBox="0 0 32 32" aria-hidden="true">
-              <rect width="32" height="32" rx="3" fill={color + '25'}/>
-              <text x="16" y="20.5" textAnchor="middle" fontSize="9" fontWeight="900" fill={color} fontFamily="monospace">
-                {skill.name.slice(0, 3).toUpperCase()}
-              </text>
-            </svg>
-          )}
-      </div>
-
-      <h3 className="sk-detail__name">{skill.name}</h3>
-
-      <div className="sk-detail__badge-row">
-        <span className="sk-detail__cat-badge" style={{ '--accent': color }}>
-          {category.icon} {category.title}
-        </span>
+      <div className="sk-detail__top">
+        <span className="sk-detail__icon"><SkillIcon skill={skill} color={color} /></span>
+        <div>
+          <p className="sk-detail__cat"><CategoryIcon id={cat.id} />{cat.title}</p>
+          <h3 className="sk-detail__name">{skill.name}</h3>
+        </div>
       </div>
 
       <div className="sk-detail__meter">
-        <div className="sk-detail__meter-head">
+        <p>
           <span>Proficiency</span>
-          <span className="sk-detail__pct" style={{ color }}>{skill.level}%</span>
-        </div>
-        <div className="sk-detail__track">
-          <motion.div
-            className="sk-detail__fill"
-            style={{ '--accent': color }}
-            initial={{ width: 0 }}
-            animate={{ width: `${skill.level}%` }}
-            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          />
-          <motion.div
-            className="sk-detail__pip"
-            style={{ '--accent': color }}
-            initial={{ left: '0%' }}
-            animate={{ left: `${skill.level}%` }}
-            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          />
-        </div>
+          <b>{skill.level}%</b>
+        </p>
+        <span className="sk-detail__track">
+          <motion.i initial={{ width: 0 }} animate={{ width: `${skill.level}%` }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.1 }} />
+          {/* marks at the three tiers */}
+          <em style={{ left: '75%' }} />
+          <em style={{ left: '88%' }} />
+        </span>
       </div>
 
       <p className="sk-detail__desc">{skill.desc}</p>
-
-      <div className="sk-detail__tags">
-        {[
-          'Proficient',
-          skill.level >= 88 ? 'Expert' : skill.level >= 75 ? 'Advanced' : 'Intermediate'
-        ].map(tag => (
-          <span key={tag} className="sk-detail__tag" style={{ '--accent': color }}>{tag}</span>
-        ))}
-      </div>
+      <p className="sk-detail__tier">{tier(skill.level)}</p>
     </motion.div>
   )
 }
 
 /* ═══════════════════════════════════════════════════════
-   Detail Panel Shell (persistent — never remounts while any skill is selected)
+   Stacked layout: details open in a sheet (phones) or dialog
 ═══════════════════════════════════════════════════════ */
-function DetailPanel({ skill, category, onClose, isMobile }) {
-  // Lock body scroll on mobile
+function DetailSheet({ skill, cat, onClose }) {
+  const closeRef = useRef(null)
   useEffect(() => {
-    if (!isMobile) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [isMobile])
-
-  // Desktop panel: smooth slide-in from right; mobile: sheet slides up from bottom
-  const panelAnim = isMobile
-    ? {
-        initial: { y: '100%', opacity: 0 },
-        animate: { y: 0, opacity: 1,
-          transition: { duration: 0.48, ease: [0.25, 0.46, 0.45, 0.94] }
-        },
-        exit:    { y: '100%', opacity: 0,
-          transition: { duration: 0.36, ease: [0.55, 0, 1, 0.45] }
-        }
-      }
-    : {
-        initial: { x: 48, opacity: 0, scale: 0.97 },
-        animate: { x: 0,  opacity: 1, scale: 1,
-          transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] }
-        },
-        exit:    { x: 28, opacity: 0, scale: 0.97,
-          transition: { duration: 0.3, ease: [0.55, 0, 1, 0.45] }
-        }
-      }
+    closeRef.current?.focus({ preventScroll: true })
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [])
 
   return (
     <>
-      {/* Backdrop */}
+      <motion.div className="sk-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} aria-hidden="true" />
       <motion.div
-        className="sk-backdrop"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.35, ease: 'easeInOut' }}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Panel shell */}
-      <motion.div
-        className="sk-detail"
-        style={{ '--accent': category.accent, '--glow': category.glow }}
-        initial={panelAnim.initial}
-        animate={panelAnim.animate}
-        exit={panelAnim.exit}
+        className="sk-sheet"
         role="dialog"
         aria-modal="true"
-        aria-label={`${skill.name} skill details`}
+        aria-label={`${skill.name} details`}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] } }}
+        exit={{ opacity: 0, y: 40, transition: { duration: 0.25 } }}
       >
-        <div className="sk-detail__orb" aria-hidden="true" />
-
-        {/* Close button */}
-        <button className="sk-detail__close" onClick={onClose} aria-label="Close detail panel">
+        <button type="button" className="sk-sheet__close" onClick={onClose} ref={closeRef} aria-label="Close details">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-            <path d="M18 6L6 18M6 6l12 12"/>
+            <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
-
-        {/* Inner content — animates when switching skills */}
-        <AnimatePresence mode="wait">
-          <PanelContent key={skill.name} skill={skill} category={category} />
-        </AnimatePresence>
+        <SkillDetail skill={skill} cat={cat} />
       </motion.div>
     </>
   )
 }
 
-/* ═══════════════════════════════════════════════════════
-   Category Tab
-═══════════════════════════════════════════════════════ */
-function CategoryTab({ cat, isActive, onClick }) {
+function CategoryHead({ cat }) {
   return (
-    <motion.button
-      className={`sk-tab${isActive ? ' sk-tab--active' : ''}`}
-      style={{ '--accent': cat.accent }}
-      onClick={onClick}
-      whileHover={{ y: -2, transition: { duration: 0.18 } }}
-      whileTap={{ scale: 0.95, transition: { duration: 0.1 } }}
-      aria-pressed={isActive}
-    >
-      <span className="sk-tab__icon" aria-hidden="true">{cat.icon}</span>
-      <span className="sk-tab__text">{cat.title}</span>
-      {isActive && (
-        <motion.div
-          className="sk-tab__bar"
-          layoutId="tab-bar"
-          style={{ background: cat.accent }}
-          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-        />
-      )}
-    </motion.button>
+    <div className="sk-cat" style={{ '--c': cat.accent }}>
+      <span className="sk-cat__icon"><CategoryIcon id={cat.id} /></span>
+      <div>
+        <h3 className="sk-cat__name">{cat.title}</h3>
+        <p className="sk-cat__sub">{cat.subtitle}</p>
+      </div>
+      <span className="sk-cat__count">{cat.items.length} skills</span>
+    </div>
   )
 }
 
 /* ═══════════════════════════════════════════════════════
    Main Skills Section
+   Wide screens: the section pins and scrolling moves through the categories one at a time
+   (each holds the screen for HOLD vh of scrolling); the selected skill's details stay
+   beside the grid. Elsewhere: every category stacked, details in a sheet.
 ═══════════════════════════════════════════════════════ */
+const PIN = '(min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)'
+const HOLD = 70
+const N = categories.length
+
 const SkillsBottom = () => {
   const { theme } = useTheme()
-  const isMobile = useIsMobile()
+  const pinned = useMedia(PIN)
+  const sectionRef = useRef(null)
+  const tabsRef = useRef(null)
+  const [active, setActive] = useState(0)
+  const [selected, setSelected] = useState(null) // skill name
+  const cat = categories[active]
 
-  const [activeCat, setActiveCat] = useState(0)
-  const [selectedSkill, setSelectedSkill] = useState(null)
+  // 0 when the frame first sticks under the 70px navbar, 1 when the last category is reached.
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start 70px', 'end end'] })
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    if (!pinned) return
+    const f = p * (N - 1)
+    tabsRef.current?.style.setProperty('--f', f.toFixed(3))
+    const i = Math.max(0, Math.min(N - 1, Math.round(f)))
+    setActive((a) => (a === i ? a : i))
+  })
 
-  const cat = categories[activeCat]
+  const goTo = (i) => {
+    if (!pinned) {
+      document.getElementById(`skills-${categories[i].id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+    const top = sectionRef.current.getBoundingClientRect().top + window.scrollY - 70
+    const distance = sectionRef.current.offsetHeight - (window.innerHeight - 70)
+    window.scrollTo({ top: top + (i / (N - 1)) * distance, behavior: 'smooth' })
+  }
 
-  // Close panel + switch category
-  const handleCatChange = useCallback((idx) => {
-    setSelectedSkill(null)
-    // Delay the category switch slightly so the panel exit animation has a head start
-    setTimeout(() => setActiveCat(idx), 60)
-  }, [])
+  // In the pinned layout something is always shown: the selected skill, or the category's first.
+  const shown = cat.items.find((s) => s.name === selected) ?? cat.items[0]
+  const sheetCat = categories.find((c) => c.items.some((s) => s.name === selected))
+  const sheetSkill = sheetCat?.items.find((s) => s.name === selected)
+  const select = (skill) => setSelected((cur) => (pinned ? skill.name : cur === skill.name ? null : skill.name))
 
-  // Toggle skill: same skill = close; different skill = update content (panel stays)
-  const handleSkillSelect = useCallback((skill) => {
-    setSelectedSkill(prev => {
-      if (prev?.name === skill.name) return null  // close
-      return skill                                 // switch content
-    })
-  }, [])
-
-  const handleClose = useCallback(() => setSelectedSkill(null), [])
-
-  // Escape key
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') handleClose() }
+    const onKey = (e) => {
+      if (e.key === 'Escape') setSelected(null)
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [handleClose])
+  }, [])
+
+  const head = (
+    <motion.header className="sk-head" initial="hidden" whileInView="visible" viewport={{ amount: 0.5 }} transition={{ staggerChildren: 0.12 }}>
+      <motion.h2 className="sk-title" variants={lineIn} data-text="My Skills">
+        My Skills
+      </motion.h2>
+      <motion.p className="sk-sub" variants={lineIn}>
+        <span aria-hidden="true">&gt;</span> Click any skill to reveal details · Hover for effects
+      </motion.p>
+    </motion.header>
+  )
 
   return (
     <section
-      className={`skills-v2 ${theme}`}
-      aria-label="Skills section"
+      className={`skills-v2 ${theme}${pinned ? ' skills-v2--pinned' : ''}`}
+      ref={sectionRef}
+      aria-label="Skills"
+      style={pinned ? { height: `calc(100vh - 70px + ${(N - 1) * HOLD}vh)`, '--c': cat.accent } : undefined}
     >
-      {/* Ambient BG */}
-      <div className="skills-v2__bg" aria-hidden="true">
-        <div className="skills-v2__grid-bg" />
-        <div className="skills-v2__orb orb--a" style={{ '--c': cat.accent }} />
-        <div className="skills-v2__orb orb--b" style={{ '--c': cat.glow }} />
-      </div>
-
-      <div className="skills-v2__wrap">
-
-        {/* Header */}
-        <motion.header
-          className="skills-v2__header"
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className="skills-v2__eyebrow">
-            <span className="skills-v2__rule" />
-            <span>TECH ARSENAL</span>
-            <span className="skills-v2__rule" />
-          </div>
-          <h2 className="skills-v2__title">
-            My{' '}
-            <span className="skills-v2__title-hl" style={{ '--accent': cat.accent }}>
-              Skills
-            </span>
-          </h2>
-          <p className="skills-v2__sub">Click any skill to reveal details · Hover for effects</p>
-        </motion.header>
-
-        {/* Tabs */}
-        <motion.div
-          className="skills-v2__tabs"
-          role="tablist"
-          aria-label="Skill categories"
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.55, delay: 0.12, ease: 'easeOut' }}
-        >
-          {categories.map((c, i) => (
-            <CategoryTab
-              key={c.id}
-              cat={c}
-              isActive={i === activeCat}
-              onClick={() => handleCatChange(i)}
-            />
-          ))}
-        </motion.div>
-
-        {/* Body */}
-        <div className={`skills-v2__body${selectedSkill ? ' skills-v2__body--split' : ''}`}>
-
-          {/* Skills grid */}
-          <div className="skills-v2__panel">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={cat.id}
-                initial={{ opacity: 0, y: 22 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14, transition: { duration: 0.25, ease: [0.55, 0, 1, 0.45] } }}
-                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {/* Category row */}
-                <div className="skills-v2__cat-row">
-                  <div className="skills-v2__cat-icon" style={{ '--accent': cat.accent }} aria-hidden="true">
-                    {cat.icon}
-                  </div>
-                  <div className="skills-v2__cat-info">
-                    <h3 className="skills-v2__cat-name" style={{ color: cat.accent }}>{cat.title}</h3>
-                    <p className="skills-v2__cat-sub">{cat.subtitle}</p>
-                  </div>
-                  <span className="skills-v2__cat-count" style={{ '--accent': cat.accent }}>
-                    {cat.items.length} skills
-                  </span>
-                </div>
-
-                {/* Cards — stagger in smoothly, exit together */}
-                <div className="skills-v2__cards">
-                  {cat.items.map((skill, idx) => (
-                    <motion.div
-                      key={skill.name}
-                      initial={{ opacity: 0, scale: 0.88, y: 18 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.94, y: -8, transition: { duration: 0.18 } }}
-                      transition={{
-                        duration: 0.45,
-                        delay: idx * 0.045,
-                        ease: [0.22, 1, 0.36, 1]
-                      }}
-                    >
-                      <SkillCard
-                        skill={skill}
-                        accent={cat.accent}
-                        glow={cat.glow}
-                        onSelect={handleSkillSelect}
-                        isSelected={selectedSkill?.name === skill.name}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            </AnimatePresence>
+      {pinned ? (
+        <div className="sk-pin">
+          <div className="sk-pin__top">
+            {head}
+            <div className="sk-tabs" ref={tabsRef} role="group" aria-label="Categories">
+              {categories.map((c, i) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="sk-tab"
+                  style={{ '--c': c.accent, '--i': i }}
+                  aria-pressed={i === active}
+                  onClick={() => goTo(i)}
+                >
+                  <CategoryIcon id={c.id} />
+                  <span>{c.title}</span>
+                  <i className="sk-tab__fill" aria-hidden="true" />
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Detail panel — key is ALWAYS "panel"; AnimatePresence controls mount/unmount */}
-          <AnimatePresence mode="wait">
-            {selectedSkill && (
-              <DetailPanel
-                key="panel"
-                skill={selectedSkill}
-                category={cat}
-                onClose={handleClose}
-                isMobile={isMobile}
-              />
-            )}
-          </AnimatePresence>
+          <div className="sk-stage">
+            <div className="sk-grid-wrap">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={cat.id}
+                  initial={{ opacity: 0, y: 26 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -18, transition: { duration: 0.2, ease: [0.55, 0, 1, 0.45] } }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <CategoryHead cat={cat} />
+                  <div className="sk-grid">
+                    {cat.items.map((skill, idx) => (
+                      <motion.div
+                        key={skill.name}
+                        initial={{ opacity: 0, y: 16, scale: 0.94 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.4, delay: 0.05 + idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                      >
+                        <SkillTile skill={skill} cat={cat} selected={shown.name === skill.name} onSelect={select} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            <aside className="sk-panel" style={{ '--c': cat.accent }} aria-live="polite">
+              <AnimatePresence mode="wait">
+                <SkillDetail key={`${cat.id}-${shown.name}`} skill={shown} cat={cat} />
+              </AnimatePresence>
+            </aside>
+          </div>
+
+          <p className="sk-foot" aria-hidden="true">
+            <span><kbd>Scroll</kbd> to switch category</span>
+            <span><b>{String(active + 1).padStart(2, '0')}</b> / {String(N).padStart(2, '0')}</span>
+          </p>
         </div>
+      ) : (
+        <div className="sk-stack">
+          {head}
+          <nav className="sk-jump" aria-label="Categories">
+            {categories.map((c, i) => (
+              <button key={c.id} type="button" style={{ '--c': c.accent }} onClick={() => goTo(i)}>
+                <CategoryIcon id={c.id} />
+                {c.title}
+              </button>
+            ))}
+          </nav>
+          {categories.map((c) => (
+            <motion.div
+              key={c.id}
+              id={`skills-${c.id}`}
+              className="sk-block"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <CategoryHead cat={c} />
+              <div className="sk-grid">
+                {c.items.map((skill) => (
+                  <SkillTile key={skill.name} skill={skill} cat={c} selected={selected === skill.name} onSelect={select} fillOnView />
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
-      </div>
+      <AnimatePresence>
+        {!pinned && sheetSkill && <DetailSheet key="sheet" skill={sheetSkill} cat={sheetCat} onClose={() => setSelected(null)} />}
+      </AnimatePresence>
     </section>
   )
 }
