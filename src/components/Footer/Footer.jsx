@@ -1,98 +1,111 @@
-import { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion } from 'framer-motion'
+import resumePdf from '../../assets/Manik-Resume.pdf'
 import { useTheme } from '../../hooks/useTheme'
 import './Footer.css'
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.6, staggerChildren: 0.15 } }
+const EXPLORE = [
+  ['Home', '#home'],
+  ['About', '#about'],
+  ['Experience', '#experience'],
+  ['Projects', '#projects'],
+  ['Skills', '#skills-bottom'],
+  ['YouTube', '#youtube'],
+  ['Wins', '#linkedin-posts'],
+  ['Contact', '#contact']
+]
+
+const ELSEWHERE = [
+  ['GitHub', 'https://github.com/manikkDev'],
+  ['LinkedIn', 'https://www.linkedin.com/in/manikaraj-anburaj-4550ba354/'],
+  ['YouTube', 'https://www.youtube.com/@swertzyt'],
+  ['LeetCode', 'https://leetcode.com/u/manikkdev/']
+]
+
+const BUILT_WITH = ['React', 'Vite', 'Three.js', 'Framer Motion']
+
+const rise = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
 }
 
-const fadeUp = {
-  hidden: { y: 24, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } }
-}
+const Arrow = ({ d = 'M7 17 17 7M9 7h8v8' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d={d} />
+  </svg>
+)
 
 const Footer = () => {
   const { theme } = useTheme()
-  const ref = useRef(null)
-  const inView = useInView(ref, { threshold: 0.2 })
+  const year = new Date().getFullYear()
+
+  const toTop = () => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
 
   return (
-    <motion.footer
-      id="footer"
-      className={`footer ${theme}`}
-      ref={ref}
-      variants={containerVariants}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
-    >
-      <div className="footer-wrap">
-        <motion.div className="footer-grid" variants={containerVariants}>
-          <motion.div className="footer-brand" variants={fadeUp}>
-            <div className="brand-logo">
-              <span className="logo-mark">Manik</span>
-              <span className="logo-divider">-</span>
-              <span className="logo-suffix">Dev</span>
-            </div>
-            <p className="brand-tagline">Building performant web & game experiences.</p>
-            <div className="brand-cta">
-              <a href="#contact" className="cta-btn primary">Get in touch</a>
-              <a href="#projects" className="cta-btn ghost">View projects</a>
+    <footer id="footer" className={`footer ${theme}`}>
+      <motion.div className="ft-wrap" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.25 }} transition={{ staggerChildren: 0.1 }}>
+        <div className="ft-top">
+          <motion.div className="ft-brand" variants={rise}>
+            <p className="ft-logo" data-text="MANIK-DEV" aria-label="Manik-Dev">
+              MANIK<span>-</span>DEV
+            </p>
+            <p className="ft-tagline">Building performant web &amp; game experiences.</p>
+            <div className="ft-cta">
+              <a href="#contact" className="ft-btn ft-btn--primary">
+                <span>Get in touch</span>
+                <Arrow d="M5 12h14M13 6l6 6-6 6" />
+              </a>
+              <a href="#projects" className="ft-btn">
+                <span>View projects</span>
+              </a>
             </div>
           </motion.div>
 
-          <motion.nav className="footer-links" aria-label="Explore" variants={fadeUp}>
-            <h4 className="links-title">Explore</h4>
-            <ul className="links-list">
-              <li><a href="#home">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#experience">Experience</a></li>
-              <li><a href="#projects">Projects</a></li>
-              <li><a href="#skills-bottom">Skills</a></li>
-              <li><a href="#youtube">YouTube</a></li>
-              <li><a href="#contact">Contact</a></li>
+          <motion.nav className="ft-col" aria-label="Explore" variants={rise}>
+            <h2>Explore</h2>
+            <ul>
+              {EXPLORE.map(([label, href]) => (
+                <li key={href}>
+                  <a href={href}>{label}</a>
+                </li>
+              ))}
             </ul>
           </motion.nav>
 
-          <motion.nav className="footer-resources" aria-label="Resources" variants={fadeUp}>
-            <h4 className="links-title">Resources</h4>
-            <ul className="links-list">
-              <li><a href="https://github.com/manikkDev" target="_blank" rel="noreferrer">GitHub</a></li>
-              <li><a href="https://www.linkedin.com/in/manik-khandelwal-63959825a/" target="_blank" rel="noreferrer">LinkedIn</a></li>
-              <li><a href="#">Resume</a></li>
+          <motion.nav className="ft-col" aria-label="Elsewhere" variants={rise}>
+            <h2>Elsewhere</h2>
+            <ul>
+              {ELSEWHERE.map(([label, href]) => (
+                <li key={label}>
+                  <a href={href} target="_blank" rel="noopener noreferrer">
+                    {label}
+                    <Arrow />
+                  </a>
+                </li>
+              ))}
+              <li>
+                <a href={resumePdf} download="Manik-Resume.pdf">
+                  Resume (PDF)
+                  <Arrow d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+                </a>
+              </li>
             </ul>
           </motion.nav>
-
-          <motion.div className="footer-newsletter" variants={fadeUp}>
-            <h4 className="links-title">Newsletter</h4>
-            <p className="news-desc">Occasional updates on projects and releases.</p>
-            <form className="news-form" onSubmit={(e) => e.preventDefault()}>
-              <input type="email" className="news-input" placeholder="Your email" aria-label="Email address" />
-              <button className="news-btn" type="submit">Subscribe</button>
-            </form>
-            <div className="social-row" aria-label="Social links">
-              <a className="social-btn" href="https://github.com/manikkDev" target="_blank" rel="noreferrer">GitHub</a>
-              <a className="social-btn" href="https://www.linkedin.com/in/manik-khandelwal-63959825a/" target="_blank" rel="noreferrer">LinkedIn</a>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        <div className="footer-bg" aria-hidden="true">
-          <div className="circuit-pattern"></div>
-          <div className="scan-grid"></div>
         </div>
 
-        <motion.div className="footer-bottom" variants={fadeUp}>
-          <div className="copy">© {new Date().getFullYear()} Manikaraj Anburaj</div>
-          <div className="badges">
-            <span className="badge">React</span>
-            <span className="badge">Vite</span>
-            <span className="badge">Framer Motion</span>
-          </div>
+        <motion.div className="ft-bottom" variants={rise}>
+          <p className="ft-copy">© {year} Manikaraj Anburaj</p>
+          <ul className="ft-built" aria-label="Built with">
+            {BUILT_WITH.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+          <button type="button" className="ft-top-btn" onClick={toTop}>
+            <span>Back to top</span>
+            <Arrow d="M12 19V5M6 11l6-6 6 6" />
+          </button>
         </motion.div>
-      </div>
-    </motion.footer>
+      </motion.div>
+    </footer>
   )
 }
 
