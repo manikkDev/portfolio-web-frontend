@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { label: 'Projects', href: '#projects' },
   { label: 'Skills', href: '#skills-bottom' },
   { label: 'YouTube', href: '#youtube' },
-  { label: 'Blog', href: '#linkedin-posts' },
+  { label: 'Wins', href: '#linkedin-posts' },
   { label: 'Contact', href: '#contact' },
 ];
 
