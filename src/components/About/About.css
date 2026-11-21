@@ -63,19 +63,6 @@
   pointer-events: none;
 }
 
-/* the last stretch fades into the colours along the top edge of the Experience section */
-.about--3d::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: min(34vh, 320px);
-  background: linear-gradient(to right, #0b0b0e 0%, #0d0d12 20%, #1c1428 55%, #241536 80%, #24173a 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 88%);
-  mask-image: linear-gradient(to bottom, transparent, #000 88%);
-  pointer-events: none;
-}
 
 /* every cut-corner shape in the section: set --cut on the element */
 .target-frame,

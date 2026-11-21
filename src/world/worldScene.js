@@ -534,11 +534,12 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
   // ── state ──
   // `mix` runs from 0 (the intro's view) to 1 (the hero's); the flight between them animates it.
   const view = { mode, mix: 0, scroll: 0, scrollBefore: 0, scrollTarget: 0, anchor: null, padAt: new THREE.Vector2(), rect: null, docked: false }
-  // How far each section has scrolled past (0..1 each): together they are the camera's journey
-  // from street level in the hero to above the rooftops in About. `showing` is which sections
+  // How far each section has scrolled past (0..1 each): together they are the camera's journey,
+  // from street level in the hero, to above the rooftops in About, on toward the gate in
+  // Experience. `showing` is which sections
   // are on screen: the world draws while any of them is.
-  const journey = { hero: 0, about: 0 }
-  const showing = { hero: true, about: false }
+  const journey = { hero: 0, about: 0, experience: 0 }
+  const showing = { hero: true, about: false, experience: false }
   const state = {
     speed: 0,
     fovBoost: 0,
@@ -730,8 +731,10 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
     // through About takes it above the rooftops and levels it out over the city.
     const lift = Math.min(s, 1)
     const over = THREE.MathUtils.smoothstep(s, 1, 2)
-    camera.position.set(px * 0.9, 2.5 + state.camLift + py * 0.45, rig.camZ + state.camBack).lerp(scratch.a.set(px * 0.7, 3 + lift * 10 + over * 13 + py * 0.35, 10.5), m)
-    camera.lookAt(scratch.a.set(px * 0.25, rig.lookY + state.camLift * 0.25, 0).lerp(scratch.b.set(px * 0.3, 0.4 - lift * 4.4 + over * 6, -30 - over * 40), m))
+    // ...and on through Experience it sinks a little and raises its eyes to the gate ahead
+    const onward = THREE.MathUtils.smoothstep(s, 2, 3)
+    camera.position.set(px * 0.9, 2.5 + state.camLift + py * 0.45, rig.camZ + state.camBack).lerp(scratch.a.set(px * 0.7, 3 + lift * 10 + over * 13 - onward * 8 + py * 0.35, 10.5), m)
+    camera.lookAt(scratch.a.set(px * 0.25, rig.lookY + state.camLift * 0.25, 0).lerp(scratch.b.set(px * 0.3, 0.4 - lift * 4.4 + over * 6 + onward * 26, -30 - over * 40 - onward * 190), m))
     // the further the page has scrolled into reading matter, the further the city sits back
     world.uDim.value = INTRO.dim + (HERO.dim - 0.2 * THREE.MathUtils.smoothstep(s, 0.6, 1.5) - INTRO.dim) * m
     camera.fov = (isPortrait() ? 58 : 46) + 4 * m + state.fovBoost
@@ -997,10 +1000,10 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
       pointerSeen = true
     },
 
-    /** How far a section (`hero` or `about`) has scrolled past, 0..1. Moves the camera on. */
+    /** How far a section (`hero`, `about` or `experience`) has scrolled past, 0..1. Moves the camera on. */
     setScroll(progress, part = 'hero') {
       journey[part] = THREE.MathUtils.clamp(progress, 0, 1)
-      view.scrollTarget = journey.hero + journey.about
+      view.scrollTarget = journey.hero + journey.about + journey.experience
     },
 
     /** The page element the gamepad should sit on in hero mode (null hides it). */
@@ -1038,7 +1041,7 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
     /** Whether a section is on screen. Drawing stops (and the canvas hides) when none is. */
     setActive(active, part = 'hero') {
       showing[part] = Boolean(active)
-      setRunning(showing.hero || showing.about)
+      setRunning(Object.values(showing).some(Boolean))
     },
 
     set onGamepadButton(fn) {

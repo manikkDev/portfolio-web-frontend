@@ -108,7 +108,7 @@ function App() {
         <About world={world} />
         <LazySection anchorId="experience" minHeight="auto" rootMargin="800px">
           <Suspense fallback={null}>
-            <Experience />
+            <Experience world={world} />
           </Suspense>
         </LazySection>
         <LazySection anchorId="projects" minHeight="auto" rootMargin="800px">

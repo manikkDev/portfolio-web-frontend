@@ -1,195 +1,595 @@
-/* Game-Dev Themed Experience Section */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Work Experience
+   Same visual language as the hero and About: cut-corner panels, cyan and
+   magenta light, mono labels. In the dark theme the 3D city carries on behind
+   it. On wide screens a quest log stays pinned on the left and follows the
+   reader down the timeline on the right.
+   Shared animations (glitchHover, heroNameGlitch, heroBlink) come from Hero.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .experience {
+  --h-cyan: #00f5ff;
+  --h-magenta: #ff00d4;
+  --h-green: #39ff14;
+  --h-text: #eafcff;
+  --h-muted: rgba(234, 252, 255, 0.76);
+  --h-dim: rgba(234, 252, 255, 0.54);
+  --h-panel: rgba(8, 10, 22, 0.86);
+  --h-line: rgba(0, 245, 255, 0.3);
+  --h-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
   position: relative;
-  padding: var(--spacing-2xl) 0;
-  overflow: hidden;
-}
-
-/* Match Hero light theme background exactly */
-.experience.light {
+  padding: clamp(40px, 8vh, 96px) 0 clamp(72px, 12vh, 140px);
+  overflow-x: clip; /* cards slide in from the side; clip (not hidden) keeps the quest log pinnable */
+  color: var(--h-text);
+  /* shown when the 3D city is not (light theme, reduced motion, no WebGL) */
   background:
-    radial-gradient(
-      circle at 20% 80%,
-      rgba(99, 102, 241, 0.08) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(139, 92, 246, 0.08) 0%,
-      transparent 50%
-    ),
-    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
-}
-
-/* Match Hero dark theme background exactly */
-.experience.dark {
-  background:
-    radial-gradient(
-      circle at 20% 80%,
-      rgba(0, 255, 255, 0.1) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(255, 0, 255, 0.1) 0%,
-      transparent 50%
-    ),
+    radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
     linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
-/* Shared background overlay container (same as .hero-bg) */
-.section-bg {
+.experience.light {
+  --h-cyan: #0891b2;
+  --h-magenta: #c026d3;
+  --h-green: #15803d;
+  --h-text: #0f172a;
+  --h-muted: #334155;
+  --h-dim: #64748b;
+  --h-panel: rgba(255, 255, 255, 0.86);
+  --h-line: rgba(8, 145, 178, 0.4);
+  background:
+    radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+}
+
+/* ── Over the 3D city: the same shade About ends with, and a fade into Projects at the bottom ── */
+.experience.dark.experience--3d {
+  background: transparent;
+}
+
+.experience--3d::before {
+  content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
-  overflow: hidden;
+  background: rgba(5, 3, 15, 0.82);
   pointer-events: none;
 }
 
-.experience-container {
-  width: 100%;
-  max-width: var(--container-2xl);
-  margin: 0 auto;
-  padding: 0 clamp(16px, 3vw, 24px);
-  box-sizing: border-box;
-  position: relative;
+/* the last stretch fades into the colours along the top edge of the Projects section */
+.experience--3d::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(34vh, 320px);
+  background: linear-gradient(to right, #0b0b0e 0%, #0d0d12 20%, #1c1428 55%, #241536 80%, #24173a 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 88%);
+  mask-image: linear-gradient(to bottom, transparent, #000 88%);
+  pointer-events: none;
 }
 
-.experience-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  align-items: center;
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
+/* every cut-corner shape in the section: set --cut on the element */
+.questlog,
+.questlog button,
+.mission-frame,
+.mission-inner,
+.mission-stack li {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+
+/* ───────── Layout: one column, then quest log beside the timeline from 1024px ───────── */
+.exp-grid {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 56px);
+}
+
+.exp-side {
+  display: grid;
+  align-content: start;
+  gap: clamp(22px, 3.6vh, 34px);
+}
+
+/* ───────── Heading: the same treatment as About's ───────── */
+.exp-head {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
 }
 
 .exp-title {
+  position: relative;
+  width: fit-content;
+  margin: 0;
   font-family: var(--font-primary);
   font-weight: 900;
+  font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.3rem);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: clamp(1.25rem, 5vw, 2rem);
-  color: var(--current-text-primary);
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0, 245, 255, 0.45), 0 0 2px rgba(0, 245, 255, 0.6);
+}
+
+.exp-title::before,
+.exp-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.exp-title::before {
+  color: var(--h-cyan);
+  transform: translate(-2px, 0);
+  animation: heroNameGlitch 4.4s steps(1) infinite;
+}
+
+.exp-title::after {
+  color: var(--h-magenta);
+  transform: translate(2px, 0);
+  animation: heroNameGlitch 3.5s steps(1) infinite reverse;
+}
+
+.experience.light .exp-title {
+  color: var(--h-text);
+  text-shadow: none;
+}
+
+.experience.light .exp-title::before,
+.experience.light .exp-title::after {
+  display: none;
 }
 
 .exp-sub {
-  font-size: clamp(0.9rem, 3vw, 1.125rem);
-  color: var(--current-text-secondary);
-}
-
-/* Horizontal axis accent */
-.timeline-axis { position: relative; height: 24px; margin-bottom: var(--spacing-lg); }
-.axis-line {
-  position: absolute; inset: 10px 0 0 0;
-  height: 2px; background: linear-gradient(90deg,#00ffff,#ff00ff,#ffff00);
-  opacity: 0.25; filter: blur(0.5px);
-}
-.axis-glow {
-  position: absolute; inset: 6px 0 0 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,255,255,0.6), transparent);
-  animation: axisPulse 4s ease-in-out infinite;
-}
-@keyframes axisPulse { 0%,100%{opacity:0.2} 50%{opacity:0.6} }
-
-
-/* Grid layout */
-.experience-grid {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(var(--spacing-md), 3vw, var(--spacing-xl));
-}
-
-/* Card styling */
-.exp-card {
-  position: relative;
-  background: rgba(0,0,0,0.04);
-  border: 1px solid var(--current-border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  overflow: hidden;
-  will-change: transform;
-  transform-style: preserve-3d;
-  backdrop-filter: blur(6px);
-  margin-left: 0;
-}
-
-.experience.dark .exp-card {
-  background: rgba(0,0,0,0.25);
-  border-color: rgba(255,255,255,0.08);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-}
-
-.exp-card::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(135deg, rgba(0,255,255,0.15), rgba(255,0,255,0.15));
-  opacity: 0.05;
-}
-
-
-.card-overlay { position: absolute; inset: 0; pointer-events: none; }
-.scanline { position: absolute; left: -100%; top: 0; width: 120%; height: 2px; background: linear-gradient(90deg, transparent, rgba(0,255,255,0.8), transparent); opacity: 0.6; filter: blur(0.4px); animation: scan 6s linear infinite; }
-@keyframes scan { 0%{transform: translateX(0)} 100%{transform: translateX(100%)} }
-
-.corner { position: absolute; width: 16px; height: 16px; border: 2px solid rgba(0,255,255,0.6); }
-.corner.top-left { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-.corner.top-right { top: 10px; right: 10px; border-left: none; border-bottom: none; }
-.corner.bottom-left { bottom: 10px; left: 10px; border-right: none; border-top: none; }
-.corner.bottom-right { bottom: 10px; right: 10px; border-left: none; border-top: none; }
-
-.exp-card-header {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: var(--spacing-sm);
-  padding: clamp(16px, 2.5vw, 24px) clamp(18px, 3vw, 28px);
-  position: relative;
-}
-.exp-role { display: flex; align-items: center; gap: 8px; }
-.role-text { font-weight: 800; font-size: clamp(1.6rem, 5vw, 2.4rem); color: var(--current-text-primary); }
-.role-dot { opacity: 0.5; }
-.company-text { font-weight: 700; font-size: clamp(0.95rem, 2.6vw, 1.1rem); color: var(--current-accent-primary); }
-.exp-period { font-size: clamp(0.85rem, 2.2vw, 1rem); color: var(--current-text-secondary); }
-
-.exp-card-body { padding: 0 clamp(18px, 3vw, 28px) clamp(18px, 3vw, 28px); display: grid; gap: var(--spacing-sm); }
-.exp-summary { color: var(--current-text-secondary); font-size: clamp(0.9rem, 2.4vw, 1.05rem); }
-.exp-highlights { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; }
-.highlight-item { position: relative; padding-left: 18px; color: var(--current-text-primary); font-size: clamp(0.85rem, 2.2vw, 1rem); }
-.highlight-item::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 10px; height: 2px; background: linear-gradient(90deg,#00ffff,#ff00ff); border-radius: 2px; }
-
-.exp-card-footer { padding: 0 clamp(18px, 3vw, 28px) clamp(20px, 3vw, 30px); }
-.exp-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.tag { font-size: clamp(0.75rem, 2vw, 0.875rem); padding: 6px 10px; border-radius: 999px; background: rgba(0,255,255,0.12); color: var(--current-text-primary); border: 1px solid rgba(0,255,255,0.25); backdrop-filter: blur(4px); }
-.experience.light .tag { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.25); }
-
-/* Hover polish */
-.exp-card:hover { box-shadow: 0 16px 48px rgba(0,0,0,0.12), 0 0 24px rgba(0,255,255,0.12); }
-
-.header-progress { position: absolute; left: clamp(18px, 3vw, 28px); right: clamp(18px, 3vw, 28px); bottom: 0; height: 2px; background: linear-gradient(90deg,#00ffff,#ff00ff,#ffff00); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 0.35s ease; }
-.exp-card:hover .header-progress { transform: scaleX(1); }
-
-.card-glare { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(600px circle at var(--px, 50%) var(--py, 50%), rgba(255,255,255,0.18), transparent 40%); opacity: 0; transition: opacity 0.3s ease; mix-blend-mode: screen; }
-.exp-card:hover .card-glare { opacity: 1; }
-
-/* Responsiveness */
-@media (max-width: 768px) {
-  .experience { padding: var(--spacing-xl) 0; }
-  .exp-card-header { padding: 16px; }
-  .exp-card-body { padding: 0 16px 16px; }
-  .exp-card-footer { padding: 0 16px 18px; }
-}
-
-/* Reduced motion accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .scanline { animation: none; }
-  .exp-card { box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-  .exp-card:hover .header-progress { transform: none; }
-  .card-glare { opacity: 0; }
-}
-.exp-meta {
-  display: flex;
-  gap: 14px;
+  margin: 0;
+  display: inline-flex;
   align-items: center;
-  padding: 0 clamp(18px, 3vw, 28px);
-  margin-top: clamp(6px, 1.25vw, 10px);
+  gap: 10px;
+  min-height: 2.5em;
+  padding: 6px 16px 6px 12px;
+  font-family: var(--h-mono);
+  font-weight: 700;
+  font-size: clamp(0.8rem, 0.76rem + 0.3vw, 0.98rem);
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  color: var(--h-cyan);
+  background: linear-gradient(90deg, rgba(0, 245, 255, 0.14), rgba(0, 245, 255, 0) 92%);
+  border-left: 3px solid var(--h-cyan);
 }
-.meta-item { display: inline-flex; align-items: center; gap: 6px; color: var(--current-text-secondary); font-size: clamp(0.8rem, 2.2vw, 0.95rem); }
-.meta-icon { opacity: 0.8; }
+
+.exp-sub span {
+  color: var(--h-green);
+}
+
+/* ───────── Quest log (wide screens only) ───────── */
+.questlog {
+  display: none;
+}
+
+/* ───────── Timeline ───────── */
+.timeline {
+  position: relative;
+  padding-left: 34px;
+}
+
+.timeline > ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(28px, 5vh, 52px);
+}
+
+/* the spine fills as the reader goes down it (scaleY set from Experience.jsx) */
+.timeline-spine {
+  position: absolute;
+  left: 11px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: rgba(127, 140, 160, 0.22);
+}
+
+.timeline-spine i {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--h-cyan), var(--h-magenta));
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
+  transform-origin: top;
+}
+
+.mission {
+  position: relative;
+}
+
+/* a diamond on the spine for each role: lit once the reader reaches it */
+.mission-node {
+  position: absolute;
+  left: -30px;
+  top: 22px;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  background: #0b0d18;
+  border: 2px solid rgba(127, 140, 160, 0.5);
+  transform: rotate(45deg);
+  transition: border-color 300ms, box-shadow 300ms;
+}
+
+.experience.light .mission-node {
+  background: #ffffff;
+}
+
+.mission-node i {
+  width: 6px;
+  height: 6px;
+  background: var(--h-cyan);
+  transform: scale(0);
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mission.is-active .mission-node,
+.mission.is-passed .mission-node {
+  border-color: var(--h-cyan);
+  box-shadow: 0 0 14px rgba(0, 245, 255, 0.6);
+}
+
+.mission.is-active .mission-node i,
+.mission.is-passed .mission-node i {
+  transform: scale(1);
+}
+
+.mission-frame {
+  --cut: 16px;
+  padding: 1px;
+  background: var(--h-line);
+  transition: background 300ms;
+}
+
+.mission.is-active .mission-frame,
+.mission:hover .mission-frame {
+  background: linear-gradient(135deg, var(--h-cyan), var(--h-magenta));
+}
+
+.mission-inner {
+  --cut: 15px;
+  position: relative;
+  display: grid;
+  gap: 16px;
+  padding: clamp(18px, 2.6vw, 30px) clamp(18px, 2.8vw, 32px);
+  background: var(--h-panel);
+  overflow: hidden;
+}
+
+/* a soft light that follows the cursor over the card (--mx/--my set from Experience.jsx) */
+.mission-glare {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(0, 245, 255, 0.1), transparent 60%);
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+  pointer-events: none;
+}
+
+.mission:hover .mission-glare {
+  opacity: 1;
+}
+
+.mission-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mission-head h3 {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 800;
+  font-size: clamp(1.15rem, 0.95rem + 1vw, 1.7rem);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: var(--h-text);
+}
+
+.mission-org {
+  margin: 6px 0 0;
+  font: 700 0.78rem var(--h-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--h-magenta);
+}
+
+.mission-status {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  font: 700 0.64rem var(--h-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--h-green);
+  border: 1px solid rgba(57, 255, 20, 0.4);
+  background: rgba(57, 255, 20, 0.08);
+}
+
+.mission-status i {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  animation: heroBlink 1.4s steps(2, jump-none) infinite;
+}
+
+.mission-meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font: 500 0.8rem var(--h-mono);
+  letter-spacing: 0.04em;
+  color: var(--h-dim);
+}
+
+.mission-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.mission-meta svg {
+  width: 15px;
+  height: 15px;
+  color: var(--h-cyan);
+}
+
+.mission-summary {
+  margin: 0;
+  font-size: clamp(1rem, 0.95rem + 0.2vw, 1.08rem);
+  line-height: 1.6;
+  color: var(--h-muted);
+  text-wrap: pretty;
+}
+
+/* ───────── Objectives: tick off one by one as they scroll up ─────────
+   Experience.jsx sets --done on the list (how many in) and --i on each item. */
+.objectives {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+}
+
+.objectives li {
+  --on: clamp(0, calc(var(--done, 0) - var(--i)), 1);
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: start;
+  gap: 12px;
+  font-size: clamp(0.95rem, 0.92rem + 0.15vw, 1.02rem);
+  line-height: 1.5;
+  color: var(--h-text);
+  opacity: calc(0.4 + var(--on) * 0.6);
+}
+
+.objective-check {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgba(127, 140, 160, 0.55);
+  color: #04121a;
+}
+
+/* the box fills with cyan and the tick grows as the objective is reached */
+.objective-check::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--h-cyan);
+  box-shadow: 0 0 12px rgba(0, 245, 255, 0.55);
+  opacity: var(--on);
+}
+
+.objective-check svg {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  transform: scale(var(--on));
+}
+
+.experience.light .objective-check {
+  color: #ffffff;
+}
+
+/* ───────── Stack ───────── */
+.mission-stack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(127, 140, 160, 0.2);
+}
+
+.mission-stack > span {
+  font: 700 0.66rem var(--h-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--h-dim);
+}
+
+.mission-stack ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mission-stack li {
+  --cut: 7px;
+  padding: 6px 12px;
+  font: 700 0.74rem var(--h-mono);
+  letter-spacing: 0.06em;
+  color: var(--h-text);
+  background: rgba(0, 245, 255, 0.1);
+  border: 1px solid var(--h-line);
+}
+
+.mission-stack li:hover {
+  animation: glitchHover 0.5s ease-in-out infinite;
+}
+
+/* ───────── From 1024px: quest log pinned on the left, timeline scrolling on the right ───────── */
+@media (min-width: 1024px) {
+  .exp-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+    gap: clamp(32px, 5vw, 80px);
+  }
+
+  .exp-side {
+    position: sticky;
+    top: calc(var(--navbar-height, 70px) + clamp(20px, 6vh, 64px));
+  }
+
+  .questlog {
+    --cut: 14px;
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    background: var(--h-panel);
+    border: 1px solid var(--h-line);
+  }
+
+  .questlog-head,
+  .questlog-total {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font: 700 0.66rem var(--h-mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--h-dim);
+  }
+
+  .questlog-head {
+    padding-bottom: 6px;
+  }
+
+  .questlog ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .questlog button {
+    --cut: 10px;
+    width: 100%;
+    display: grid;
+    gap: 6px;
+    padding: 12px 14px;
+    text-align: left;
+    color: var(--h-muted);
+    background: rgba(127, 140, 160, 0.08);
+    border: 0;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: background 250ms, color 250ms, border-color 250ms;
+  }
+
+  .questlog button:hover {
+    background: rgba(0, 245, 255, 0.08);
+  }
+
+  .questlog button.is-active {
+    color: var(--h-text);
+    background: linear-gradient(90deg, rgba(0, 245, 255, 0.16), rgba(0, 245, 255, 0.04));
+    border-left-color: var(--h-cyan);
+  }
+
+  .questlog button:focus-visible {
+    outline: 2px solid var(--h-text);
+    outline-offset: -2px;
+  }
+
+  .questlog-role {
+    font-family: var(--font-primary);
+    font-weight: 700;
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+  }
+
+  .questlog-meta {
+    font: 500 0.7rem var(--h-mono);
+    letter-spacing: 0.06em;
+    color: var(--h-dim);
+  }
+
+  .questlog-bar {
+    height: 4px;
+    margin-top: 2px;
+    background: rgba(127, 140, 160, 0.24);
+  }
+
+  .questlog-bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--h-cyan), var(--h-magenta));
+    transition: width 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .questlog-total {
+    padding-top: 8px;
+    border-top: 1px solid rgba(127, 140, 160, 0.2);
+  }
+
+  .questlog-total b {
+    font-size: 0.9rem;
+    color: var(--h-cyan);
+  }
+
+  /* the column under the quest log stays lighter so the city shows, as in About */
+  .experience--3d::before {
+    background: linear-gradient(to right, rgba(5, 3, 15, 0.18) 0%, rgba(5, 3, 15, 0.18) 34%, rgba(5, 3, 15, 0.74) 47%, rgba(5, 3, 15, 0.84) 72%, rgba(5, 3, 15, 0.72) 100%);
+  }
+
+  .experience--3d .exp-title {
+    text-shadow: 0 0 12px rgba(0, 245, 255, 0.45), 0 0 2px rgba(0, 245, 255, 0.6), 0 2px 18px rgba(5, 3, 15, 0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* every objective simply shows as done */
+  .objectives li {
+    --on: 1;
+  }
+
+  .exp-title::before,
+  .exp-title::after,
+  .mission-status i {
+    animation: none;
+  }
+}
