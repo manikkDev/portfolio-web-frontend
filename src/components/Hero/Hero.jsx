@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import profileImage from '../../assets/manik-image-passport-size.jpg';
 import resumePdf from '../../assets/Manik-Resume.pdf';
 import { useTheme } from '../../hooks/useTheme';
+import { lineIn } from '../../utils/reveal';
 import './Hero.css';
 
 const ROLES = [
@@ -124,19 +125,6 @@ const containerVariants = {
 const cardIn = {
   hidden: { opacity: 0, y: 26, scale: 0.94 },
   visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] } }
-};
-
-// Each line of copy is wiped in from the left, as if a display were printing it. The clip
-// reaches a little past the box so glows are not cut off, and is dropped once the line is in.
-const lineIn = {
-  hidden: { opacity: 0, x: -16, clipPath: 'inset(-12% 100% -12% -4%)' },
-  visible: {
-    opacity: 1,
-    x: 0,
-    clipPath: 'inset(-12% -4% -12% -4%)',
-    transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
-    transitionEnd: { clipPath: 'none' }
-  }
 };
 
 /**

@@ -1,8 +1,9 @@
-import { motion, useAnimationControls, useInView, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
+import { motion, useAnimationControls, useInView, useMotionValue, useMotionValueEvent, useScroll, useSpring } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import employedImage from '../../assets/employed-manik.jpg';
 import unemployedImage from '../../assets/manik-unemployed.jpg';
 import { useTheme } from '../../hooks/useTheme';
+import { lineIn, useScrollIn } from '../../utils/reveal';
 import './About.css';
 
 const BIO = [
@@ -40,25 +41,6 @@ const WEAPONS = [
 const CLIP = 24;
 const START_HP = 86;
 const SHIELD_HIT = 34; // three clicks break a shield
-
-// Same entrance as the hero's copy: a line is wiped in from the left.
-const lineIn = {
-  hidden: { opacity: 0, x: -16, clipPath: 'inset(-12% 100% -12% -4%)' },
-  visible: {
-    opacity: 1,
-    x: 0,
-    clipPath: 'inset(-12% -4% -12% -4%)',
-    transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
-    transitionEnd: { clipPath: 'none' }
-  }
-};
-
-/** Opacity and offset tied to how far the element has scrolled into view, so it rides the scroll both ways. */
-function useScrollIn(ref, from = 48) {
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 97%', 'start 68%'] });
-  const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 26, mass: 0.6 });
-  return { opacity: progress, x: useTransform(progress, [0, 1], [from, 0]) };
-}
 
 /**
  * A paragraph whose words light up one after another as it scrolls up the screen. One number
