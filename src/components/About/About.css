@@ -1,2093 +1,819 @@
-/* Gaming-Themed About Section */
+/* ═══════════════════════════════════════════════════════════════════════════
+   About
+   Same visual language as the hero: cut-corner panels, cyan and magenta light,
+   mono labels. In the dark theme the 3D city stays on behind the section.
+   The poster stays pinned on wide screens while the text scrolls past it.
+   Shared animations (glitchHover, heroBorderFlow, heroNameGlitch, heroBlink)
+   come from Hero.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .about {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
+  --h-cyan: #00f5ff;
+  --h-magenta: #ff00d4;
+  --h-green: #39ff14;
+  --h-red: #ff2850;
+  --h-text: #eafcff;
+  --h-muted: rgba(234, 252, 255, 0.76);
+  --h-dim: rgba(234, 252, 255, 0.54);
+  --h-panel: rgba(8, 10, 22, 0.86);
+  --h-line: rgba(0, 245, 255, 0.3);
+  --h-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
   position: relative;
-  overflow: hidden;
-  margin-top: 0;
-  box-sizing: border-box;
-  transition: background 0.3s ease;
-  contain: layout style;
+  padding: clamp(72px, 13vh, 150px) 0 clamp(100px, 18vh, 200px);
+  overflow-x: clip; /* things slide in from the side; clip does not break the pinned poster */
+  color: var(--h-text);
+  /* shown when the 3D city is not (light theme, reduced motion, no WebGL) */
+  background:
+    radial-gradient(90% 60% at 12% 8%, rgba(0, 245, 255, 0.09), transparent 62%),
+    radial-gradient(80% 60% at 92% 92%, rgba(255, 0, 212, 0.08), transparent 60%),
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 100% 44px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 44px 100%,
+    #0a0a0a;
 }
 
-/* Light Theme About Background */
 .about.light {
-  background: radial-gradient(
-      circle at 20% 80%,
-      rgba(99, 102, 241, 0.08) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(139, 92, 246, 0.08) 0%,
-      transparent 50%
-    ),
-    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  --h-cyan: #0891b2;
+  --h-magenta: #c026d3;
+  --h-green: #15803d;
+  --h-red: #dc2626;
+  --h-text: #0f172a;
+  --h-muted: #334155;
+  --h-dim: #64748b;
+  --h-panel: rgba(255, 255, 255, 0.86);
+  --h-line: rgba(8, 145, 178, 0.4);
+  background:
+    radial-gradient(90% 60% at 12% 8%, rgba(8, 145, 178, 0.12), transparent 62%),
+    radial-gradient(80% 60% at 92% 92%, rgba(192, 38, 211, 0.1), transparent 60%),
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px) 0 0 / 100% 44px,
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px) 0 0 / 44px 100%,
+    #f4f6fb;
 }
 
-/* Dark Theme About Background */
-.about.dark {
-  background: radial-gradient(
-      circle at 20% 80%,
-      rgba(0, 255, 255, 0.1) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(255, 0, 255, 0.1) 0%,
-      transparent 50%
-    ),
-    linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+/* ── Over the 3D city: see-through, with shade behind the text and a fade into the next section ── */
+.about.dark.about--3d {
+  background: transparent;
 }
 
-.about::before {
+.about--3d::before {
   content: "";
   position: absolute;
-  top: 0;
+  inset: 0;
+  background: rgba(5, 3, 15, 0.82);
+  pointer-events: none;
+}
+
+/* the last stretch fades into the colours along the top edge of the Experience section */
+.about--3d::after {
+  content: "";
+  position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 255, 255, 0.03) 2px,
-    rgba(0, 255, 255, 0.03) 4px
-  );
+  height: min(34vh, 320px);
+  background: linear-gradient(to right, #0b0b0e 0%, #0d0d12 20%, #1c1428 55%, #241536 80%, #24173a 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 88%);
+  mask-image: linear-gradient(to bottom, transparent, #000 88%);
   pointer-events: none;
-  z-index: 1;
 }
 
-.about::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255, 0, 255, 0.03) 2px,
-    rgba(255, 0, 255, 0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 1;
+/* every cut-corner shape in the section: set --cut on the element */
+.target-frame,
+.target-screen,
+.target-plate,
+.loadout button,
+.skill-frame,
+.skill-inner,
+.shield {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
 }
 
-.about-container {
+/* ───────── Layout: one column, then poster beside text from 1024px ───────── */
+.about-grid {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  position: relative;
-  z-index: 2;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-}
-
-.about-content {
+  padding: 0 clamp(16px, 4vw, 48px);
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(var(--spacing-xl) / 2);
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: clamp(36px, 6vw, 64px);
+}
+
+.about-side {
+  display: grid;
+  justify-items: center;
+}
+
+.about-copy {
+  position: relative;
   width: 100%;
-  position: relative;
-  z-index: 3;
+  max-width: 680px;
+  display: grid;
+  gap: clamp(26px, 4.4vh, 48px);
 }
 
-/* Left Side - Image Section */
-.about-image-section {
-  display: flex;
-  justify-content: center;
+.about-rail {
+  display: none;
+}
+
+/* ───────── Heading ───────── */
+.about-head {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+.about-title {
+  position: relative;
+  width: fit-content;
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 900;
+  font-size: clamp(1.9rem, 1.1rem + 2.8vw, 3.3rem);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0, 245, 255, 0.45), 0 0 2px rgba(0, 245, 255, 0.6);
+}
+
+/* the same colour-split glitch as the name in the hero */
+.about-title::before,
+.about-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  text-shadow: none;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.about-title::before {
+  color: var(--h-cyan);
+  transform: translate(-2px, 0);
+  animation: heroNameGlitch 4.6s steps(1) infinite;
+}
+
+.about-title::after {
+  color: var(--h-magenta);
+  transform: translate(2px, 0);
+  animation: heroNameGlitch 3.7s steps(1) infinite reverse;
+}
+
+.about.light .about-title {
+  color: var(--h-text);
+  text-shadow: none;
+}
+
+.about.light .about-title::before,
+.about.light .about-title::after {
+  display: none;
+}
+
+.about-role {
+  margin: 0;
+  display: inline-flex;
   align-items: center;
-  position: relative;
+  gap: 10px;
+  min-height: 2.5em;
+  padding: 0 16px 0 12px;
+  font-family: var(--h-mono);
+  font-weight: 700;
+  font-size: clamp(0.9rem, 0.84rem + 0.45vw, 1.15rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--h-cyan);
+  background: linear-gradient(90deg, rgba(0, 245, 255, 0.14), rgba(0, 245, 255, 0) 92%);
+  border-left: 3px solid var(--h-cyan);
 }
 
-.about-image-section .image-container {
-    position: relative;
-    width: clamp(375px, 62.5vw, 625px);
-    height: clamp(375px, 62.5vw, 625px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+.about-role span {
+  color: var(--h-green);
+}
 
-  .about-image-section .image-placeholder {
-    position: relative;
-    width: clamp(350px, 56.25vw, 562.5px);
-    height: clamp(350px, 56.25vw, 562.5px);
-  border-radius: 20px;
+/* ───────── The bio: large, and lit word by word as it scrolls ─────────
+   About.jsx sets --lit on the paragraph (how many words in the reader is) and --i on each word. */
+.about-lead {
+  margin: 0;
+  font-family: var(--font-secondary);
+  font-weight: 500;
+  font-size: clamp(1.12rem, 1rem + 0.7vw, 1.55rem);
+  line-height: 1.5;
+  color: var(--h-text);
+  text-wrap: pretty;
+}
+
+.about-lead span {
+  /* a word starts to light when the reader reaches it and is fully lit four words later */
+  opacity: clamp(0.2, calc((var(--lit, 0) - var(--i)) / 4), 1);
+}
+
+.about--3d .about-lead {
+  text-shadow: 0 1px 10px rgba(5, 3, 15, 0.9);
+}
+
+/* ───────── Meters (poster plate and shields share them) ───────── */
+.meter,
+.shield-meter {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font: 700 0.66rem var(--h-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.meter i,
+.shield-meter i {
+  height: 6px;
+  background: rgba(127, 140, 160, 0.28);
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.9);
-  border: 3px solid rgba(0, 255, 255, 0.3);
-  box-shadow: 0 0 40px rgba(0, 255, 255, 0.2),
-    inset 0 0 40px rgba(0, 255, 255, 0.1);
-  backdrop-filter: blur(15px);
-  animation: none;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-style: preserve-3d;
 }
 
-.about-image-section .image-placeholder:hover {
-  transform: scale(1.02) rotateY(5deg) rotateX(2deg);
-  border-color: rgba(0, 255, 255, 0.6);
-  box-shadow: 0 0 60px rgba(0, 255, 255, 0.4),
-    inset 0 0 60px rgba(0, 255, 255, 0.2);
+.meter b,
+.shield-meter b {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--h-cyan), var(--h-magenta));
+  transition: width 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.about-image {
+.meter em,
+.shield-meter em {
+  min-width: 4ch;
+  font-style: normal;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───────── The poster on the firing range ───────── */
+.target {
+  --w: clamp(250px, 72vw, 360px);
+  width: var(--w);
+}
+
+/* glow lives on this wrapper because a clipped element cannot cast one */
+.target-shell {
+  position: relative;
+  filter: drop-shadow(0 0 18px rgba(0, 245, 255, 0.35)) drop-shadow(0 0 42px rgba(255, 0, 212, 0.2));
+  transition: filter 300ms ease-out;
+}
+
+.target-frame {
+  --cut: 22px;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--h-cyan), var(--h-magenta) 55%, var(--h-cyan));
+  background-size: 220% 220%;
+  animation: heroBorderFlow 7s linear infinite;
+}
+
+.target-screen {
+  --cut: 21px;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #0b0d18;
+  cursor: crosshair;
+}
+
+.target-screen:focus-visible {
+  box-shadow: inset 0 0 0 3px #ffffff;
+}
+
+.target-photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.target-photo img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  position: relative;
-  z-index: 2;
-  transition: all 0.4s ease;
-  will-change: transform;
-  backface-visibility: hidden;
 }
 
-.about-image-section .img-recoil {
-  display: inline-block;
-  will-change: transform;
-}
-
-.about-image-section .image-glow {
-  position: absolute;
-  inset: -20px;
-  background: radial-gradient(
-    circle,
-    rgba(0, 255, 255, 0.3) 0%,
-    rgba(255, 0, 255, 0.2) 50%,
-    transparent 70%
-  );
-  border-radius: 30px;
-  animation: none;
-  z-index: 1;
-}
-
-.about-image-section .gaming-overlay {
+.target-lines {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(0, 255, 255, 0.1) 50%,
-    transparent 70%
-  );
-  border-radius: 20px;
-  animation: none;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px);
+  pointer-events: none;
+}
+
+/* low health: everything on the range turns red */
+.target.is-danger .target-shell {
+  filter: drop-shadow(0 0 20px rgba(255, 40, 80, 0.6)) drop-shadow(0 0 46px rgba(255, 40, 80, 0.3));
+}
+
+.target.is-danger .target-frame {
+  background-image: linear-gradient(135deg, var(--h-red), #ff9a3d 55%, var(--h-red));
+  animation-duration: 1.6s;
+}
+
+/* the sight: a dashed ring that turns, with a dot at its centre */
+.target-sight {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border: 2px dashed var(--h-magenta);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(255, 0, 212, 0.5);
+  animation: aboutSpin 7s linear infinite;
+  pointer-events: none;
+}
+
+.target-sight i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.target.is-danger .target-sight {
+  border-color: var(--h-red);
+  box-shadow: 0 0 14px rgba(255, 40, 80, 0.7);
+  animation-duration: 1.8s;
+}
+
+/* a shot: a ring, eight sparks and the damage dealt */
+.target-shot {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.target-ring {
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: aboutPing 0.45s ease-out forwards;
+}
+
+.target-spark {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 11px;
+  height: 2px;
+  background: var(--h-cyan);
+  transform-origin: 0 50%;
+  transform: rotate(var(--a)) translateX(6px);
+  animation: aboutSpark 0.4s ease-out forwards;
+}
+
+.target-shot b {
+  position: absolute;
+  left: 16px;
+  top: -30px;
+  font: 800 1.05rem var(--font-primary);
+  white-space: nowrap;
+  color: #ffffff;
+  text-shadow: 0 0 10px var(--h-magenta), 0 1px 2px #000000;
+  animation: aboutDamage 0.75s ease-out forwards;
+}
+
+/* out of health: bars sweep down over the poster, it changes behind them, and they lift */
+.target-wipe {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.target-wipe i {
+  flex: 1;
+  background: linear-gradient(var(--h-cyan), var(--h-magenta));
+  transform: scaleY(0);
+  animation: aboutWipe 1.3s cubic-bezier(0.7, 0, 0.3, 1) var(--d) both;
+}
+
+.target-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--h-cyan);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.target-corner--tl { top: -9px; left: -9px; border-right: 0; border-bottom: 0; }
+.target-corner--br { bottom: -9px; right: -9px; border-left: 0; border-top: 0; }
+
+/* readouts and weapon choice under the poster */
+.target-plate {
+  --cut: 12px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 9px;
+  text-align: left;
+  background: var(--h-panel);
+  border: 1px solid var(--h-line);
+}
+
+.meter span {
+  min-width: 5ch;
+  color: var(--h-dim);
+}
+
+.meter--hp b {
+  background: linear-gradient(90deg, var(--h-green), var(--h-cyan));
+}
+
+.target.is-danger .meter--hp b {
+  background: var(--h-red);
+}
+
+.target.is-danger .meter--hp em {
+  color: var(--h-red);
+}
+
+.loadout {
+  margin-top: 3px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.loadout button {
+  --cut: 7px;
+  min-height: 34px;
+  border: 0;
+  font: 700 0.66rem var(--h-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--h-muted);
+  background: rgba(127, 140, 160, 0.16);
+  cursor: pointer;
+  transition: background 160ms, color 160ms;
+}
+
+.loadout button[aria-pressed="true"] {
+  color: #04121a;
+  background: var(--h-cyan);
+}
+
+.about.light .loadout button[aria-pressed="true"] {
+  color: #ffffff;
+}
+
+.loadout button:hover {
+  animation: glitchHover 0.5s ease-in-out infinite;
+}
+
+.loadout button:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--h-text);
+}
+
+.about-hint {
+  margin: 10px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  font: 500 0.66rem var(--h-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--h-dim);
+}
+
+.about-hint kbd {
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  display: inline-grid;
+  place-items: center;
+  font: 700 0.64rem var(--h-mono);
+  color: var(--h-text);
+  background: var(--h-panel);
+  border: 1px solid var(--h-line);
+  border-bottom-width: 2px;
+}
+
+.about-hint span {
+  margin: 0 8px 0 4px;
+}
+
+/* ───────── Skills: each one behind a shield ───────── */
+.skills {
+  list-style: none;
+  margin: clamp(6px, 1.6vh, 16px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.skill {
+  position: relative;
+}
+
+.skill-frame {
+  --cut: 14px;
+  padding: 1px;
+  background: var(--h-line);
+}
+
+.skill-inner {
+  --cut: 13px;
+  min-height: 116px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: clamp(14px, 2vw, 22px);
+  padding: 18px clamp(16px, 2.2vw, 26px);
+  background: var(--h-panel);
+}
+
+.skill-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: var(--h-cyan);
+  background: rgba(0, 245, 255, 0.08);
+  border: 1px solid var(--h-line);
+}
+
+.skill-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.skill-body h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-primary);
+  font-weight: 800;
+  font-size: clamp(0.95rem, 0.88rem + 0.4vw, 1.15rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--h-text);
+}
+
+.skill-body p {
+  margin: 0;
+  font-size: clamp(0.94rem, 0.9rem + 0.2vw, 1.02rem);
+  line-height: 1.55;
+  color: var(--h-muted);
+}
+
+.skill.is-open .skill-frame {
+  background: linear-gradient(135deg, var(--h-cyan), var(--h-magenta));
+}
+
+.skill.is-open:hover .skill-frame {
+  animation: glitchHover 0.5s ease-in-out infinite;
+}
+
+.skill-tag {
+  position: absolute;
+  top: -9px;
+  right: 18px;
+  z-index: 3;
+  padding: 3px 10px;
+  font: 700 0.62rem var(--h-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #04130a;
+  background: var(--h-green);
+  box-shadow: 0 0 14px rgba(57, 255, 20, 0.5);
+  animation: aboutTagIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.about.light .skill-tag {
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* the shield: an energy screen that thins with every hit (--hp runs from 1 to 0) */
+.shield {
+  --cut: 14px;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 0;
+  overflow: hidden;
+  color: #eafcff;
+  cursor: pointer;
+  background:
+    repeating-linear-gradient(60deg, rgba(0, 245, 255, 0.14) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(-60deg, rgba(0, 245, 255, 0.14) 0 1px, transparent 1px 13px),
+    linear-gradient(135deg, rgba(0, 74, 84, 0.96), rgba(6, 22, 44, 0.97));
+  opacity: calc(0.42 + var(--hp) * 0.58);
+  transition: opacity 250ms ease-out, filter 160ms;
+}
+
+/* a band of light that crosses the shield now and then */
+.shield::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.16) 50%, transparent 62%);
+  transform: translateX(-100%);
+  animation: aboutSheen 3.4s linear infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.shield:hover {
+  filter: brightness(1.25);
+}
+
+.shield:focus-visible {
+  box-shadow: inset 0 0 0 3px #ffffff;
+}
+
+.shield.is-broken {
+  animation: aboutShieldOut 0.45s ease-out forwards;
+  pointer-events: none;
+}
+
+.shield-meter {
+  width: min(340px, 62vw);
+}
+
+.shield-icon {
+  position: absolute;
+  left: clamp(16px, 2.2vw, 26px);
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  margin-top: -15px;
+  opacity: 0.45;
+}
+
+.shield-tip {
+  font: 500 0.62rem var(--h-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(234, 252, 255, 0.6);
+}
+
+.shield-ping {
+  position: absolute;
+  left: var(--sx, 50%);
+  top: var(--sy, 50%);
+  width: 16px;
+  height: 16px;
+  margin: -8px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: aboutPing 0.5s ease-out forwards;
+  pointer-events: none;
+}
+
+/* what is left of a broken shield flies off in all directions */
+.shards {
+  position: absolute;
+  inset: 0;
   z-index: 3;
   pointer-events: none;
 }
 
-/* Floating Elements - Same as Hero */
-.about-image-section .floating-elements {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* Interactive Game HUD */
-.about-image-section .game-hud {
-  position: absolute;
-  inset: 0;
-  pointer-events: auto;
-  z-index: 4;
-}
-.about-image-section .game-hud * { box-sizing: border-box; }
-.about-image-section .reticle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 36px;
-  height: 36px;
-  transform: translate(-50%, -50%);
-  border: 2px solid rgba(57,255,20,0.8);
-  border-radius: 50%;
-  box-shadow: 0 0 12px rgba(57,255,20,0.5);
-  will-change: transform;
-}
-.about-image-section .reticle::before,
-.about-image-section .reticle::after {
-  content: "";
+.shards i {
+  --turn: calc(var(--i) * 36deg + 12deg);
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 2px;
-  height: 50%;
-  background: rgba(57,255,20,0.9);
-  transform: translate(-50%, -50%);
-}
-.about-image-section .reticle::after { transform: translate(-50%, -50%) rotate(90deg); }
-.about-image-section .shot-pulse {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid rgba(0,245,255,0.9);
-  box-shadow: 0 0 14px rgba(0,245,255,0.5);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-.about-image-section .hud-panel {
-  position: absolute;
-  background: rgba(0,0,0,0.35);
-  border: 1px solid rgba(0,255,255,0.25);
-  border-radius: 10px;
-  backdrop-filter: blur(6px);
-  color: var(--current-text-primary);
-}
-.about-image-section .hud-panel.stats {
-  bottom: 10px;
-  left: 10px;
-  width: 160px;
-  padding: 8px;
-  display: grid;
-  gap: 6px;
-}
-.about-image-section .stat { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; }
-.about-image-section .stat .label { font-weight: 700; color: var(--neon-green); }
-.about-image-section .stat .bar { position: relative; height: 6px; background: rgba(57,255,20,0.15); border-radius: 999px; overflow: hidden; }
-.about-image-section .stat .bar span { position: absolute; inset: 0; width: 0; background: linear-gradient(90deg, rgba(57,255,20,0.6), rgba(0,245,255,0.6)); box-shadow: 0 0 10px rgba(57,255,20,0.4); }
-.about-image-section .stat .value { font-weight: 700; color: var(--current-text-secondary); }
-.about-image-section .hud-panel.radar {
-  top: 10px;
-  right: 10px;
-  width: 120px;
-  height: 120px;
-  padding: 8px;
-  display: grid;
-  place-items: center;
-}
-.about-image-section .radar-grid { position: relative; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, rgba(0,245,255,0.08), transparent 60%); overflow: hidden; }
-.about-image-section .radar-grid::before { content: ""; position: absolute; inset: 0; background: repeating-radial-gradient(circle, rgba(0,245,255,0.12), rgba(0,245,255,0.12) 1px, transparent 2px); opacity: 0.4; }
-.about-image-section .sweep { position: absolute; left: 50%; top: 20%; width: 2px; height: 60%; background: rgba(0,245,255,0.45); box-shadow: 0 0 8px rgba(0,245,255,0.6); transform-origin: bottom center; animation: radarSweep 2.8s linear infinite; }
-.about-image-section .blip { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: rgba(57,255,20,0.9); box-shadow: 0 0 10px rgba(57,255,20,0.6); animation: blipPulse 2.6s ease-in-out infinite; }
-.about-image-section .blip.b1 { top: 22%; left: 62%; }
-.about-image-section .blip.b2 { top: 56%; left: 34%; animation-delay: .6s; }
-.about-image-section .blip.b3 { top: 72%; left: 68%; animation-delay: 1.2s; }
-.about-image-section .hud-panel.loadout { bottom: 10px; right: 10px; display: inline-flex; gap: 8px; padding: 8px; }
-.about-image-section .slot { padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(0,255,255,0.35); background: rgba(0,255,255,0.12); font-weight: 700; font-size: 0.7rem; color: var(--current-text-primary); }
-.about-image-section .slot.active { background: rgba(57,255,20,0.18); border-color: rgba(57,255,20,0.45); color: var(--neon-green); }
-
-@keyframes radarSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes blipPulse { 0%, 100% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } }
-
-.about-image-section .win-overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(57,255,20,0.25), transparent 60%),
-    repeating-linear-gradient(45deg, rgba(0,245,255,0.25) 0 4px, transparent 4px 8px);
-  animation: winFlash .9s ease-out;
-  pointer-events: none;
-  z-index: 5;
+  width: 18px;
+  height: 11px;
+  background: rgba(0, 245, 255, 0.8);
+  clip-path: polygon(0 0, 100% 30%, 60% 100%);
+  transform: rotate(var(--turn));
+  animation: aboutShard 0.75s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
 }
 
-@keyframes winFlash {
-  0% { opacity: 0; }
-  40% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-.about-image-section .danger-vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(255,0,0,0.25) 100%);
-  mix-blend-mode: screen;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.about-image-section .reveal-overlay {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 6px;
-  pointer-events: none;
-  z-index: 6;
-}
-.about-image-section .reveal-overlay .bar {
-  position: relative;
-  overflow: hidden;
-}
-.about-image-section .reveal-overlay .bar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(57,255,20,0.35), rgba(0,245,255,0.35));
-  transform-origin: left;
-  animation: barSweep 900ms ease-in-out forwards;
-  animation-delay: var(--d);
-}
-
-@keyframes barSweep {
-  0% { transform: scaleX(0); }
-  40% { transform: scaleX(1); }
-  100% { transform: scaleX(0); }
-}
-
-.about-image-section .shot-burst {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 4;
-}
-.about-image-section .shot-burst .particle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(0,245,255,0.9);
-  box-shadow: 0 0 8px rgba(0,245,255,0.6);
-  animation: particleFly 500ms ease-out forwards;
-}
-.about-image-section .shot-burst .particle.p1 { transform: rotate(0deg); }
-.about-image-section .shot-burst .particle.p2 { transform: rotate(45deg); }
-.about-image-section .shot-burst .particle.p3 { transform: rotate(90deg); }
-.about-image-section .shot-burst .particle.p4 { transform: rotate(135deg); }
-.about-image-section .shot-burst .particle.p5 { transform: rotate(180deg); }
-.about-image-section .shot-burst .particle.p6 { transform: rotate(225deg); }
-.about-image-section .shot-burst .particle.p7 { transform: rotate(270deg); }
-.about-image-section .shot-burst .particle.p8 { transform: rotate(315deg); }
-
-@keyframes particleFly {
-  0% { opacity: 1; transform: translate(0,0) scale(1); }
-  100% { opacity: 0; transform: translate(24px, 0) scale(0.6); }
-}
-
-.about-image-section .ko-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255,0,0,0.25), transparent 60%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 4px);
-  animation: koShake 0.5s ease-in-out 3;
-  pointer-events: none;
-  z-index: 5;
-}
-
-@keyframes koShake {
-  0%, 100% { transform: translate(0,0); }
-  25% { transform: translate(-2px, 2px); }
-  50% { transform: translate(2px, -2px); }
-  75% { transform: translate(-2px, -2px); }
-}
-
-.about-image-section .hud-element {
-  position: absolute;
-  padding: clamp(6px, 1.33vw, 10px) clamp(8px, 1.78vw, 12px);
-  background: rgba(0, 0, 0, 0.95);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  border-radius: clamp(4px, 0.89vw, 6px);
-  font-family: "Courier New", monospace;
-  font-size: clamp(0.533rem, 1.422vw, 0.667rem);
-  color: #00ffff;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2),
-    inset 0 0 20px rgba(0, 255, 255, 0.1);
-  animation: none;
-  transition: all 0.3s ease;
-}
-
-.about-image-section .terminal-window {
-  top: 10%;
-  right: 15%;
-  min-width: 140px;
-  animation-delay: 0s;
-}
-
-.about-image-section .terminal-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 4px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-}
-
-.about-image-section .terminal-dots {
-  display: flex;
-  gap: 4px;
-}
-
-.about-image-section .terminal-dots span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #ff5f56;
-}
-
-.about-image-section .terminal-dots span:nth-child(2) {
-  background: #ffbd2e;
-}
-
-.about-image-section .terminal-dots span:nth-child(3) {
-  background: #27ca3f;
-}
-
-.about-image-section .terminal-content {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.about-image-section .terminal-text {
-  color: #00ff00;
-  font-weight: 500;
-}
-
-.about-image-section .cursor-blink {
-  width: 8px;
-  height: 12px;
-  background: #00ff00;
-  animation: blink 1s infinite;
-}
-
-.about-image-section .code-panel {
-  bottom: 30%;
-  right: 8%;
-  min-width: 120px;
-  animation-delay: -2s;
-  border-color: rgba(255, 0, 255, 0.3);
-  color: #ff00ff;
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.2),
-    inset 0 0 20px rgba(255, 0, 255, 0.1);
-}
-
-.about-image-section .code-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.about-image-section .code-line {
-  font-size: 0.65rem;
-  opacity: 0.8;
-}
-
-.about-image-section .syntax-highlight {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 0, 255, 0.1),
-    transparent
-  );
-  animation: scanLine 3s ease-in-out infinite;
-}
-
-.about-image-section .game-stats {
-  top: 60%;
-  left: 8%;
-  min-width: 100px;
-  animation-delay: -4s;
-  border-color: rgba(255, 255, 0, 0.3);
-  color: #ffff00;
-  box-shadow: 0 0 20px rgba(255, 255, 0, 0.2),
-    inset 0 0 20px rgba(255, 255, 0, 0.1);
-}
-
-.about-image-section .stat-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.about-image-section .stat-label {
-  font-size: 0.6rem;
-  font-weight: bold;
-}
-
-.about-image-section .stat-progress {
-  flex: 1;
-  height: 4px;
-  background: rgba(255, 255, 0, 0.2);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.about-image-section .stat-fill {
-  height: 100%;
-  width: 95%;
-  background: linear-gradient(90deg, #ffff00, #ff8800);
-  animation: statFill 4s ease-in-out infinite;
-}
-
-.about-image-section .level-indicator {
-  font-size: 0.65rem;
-  font-weight: bold;
-  text-align: center;
-}
-
-.about-image-section .hud-element:hover {
-  transform: scale(1.05);
-  border-color: rgba(0, 255, 255, 0.6);
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.4),
-    inset 0 0 30px rgba(0, 255, 255, 0.2);
-}
-
-/* Interactive Glitch Particles - Same as Hero */
-.about-image-section .glitch-particles {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.about-image-section .glitch-particle {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background: #00ffff;
-  border-radius: 2px;
-  left: var(--x);
-  top: var(--y);
-  animation: glitchParticle 6s ease-in-out infinite,
-    particleGlow 2s ease-in-out infinite;
-  animation-delay: var(--delay);
-  box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
-}
-
-.about-image-section .glitch-particle:nth-child(2n) {
-  background: #ff00ff;
-  animation-duration: 8s, 3s;
-}
-
-.about-image-section .glitch-particle:nth-child(3n) {
-  background: #ffff00;
-  animation-duration: 7s, 2.5s;
-}
-
-/* Digital Grid Overlay - Same as Hero */
-.about-image-section .grid-line {
-  position: absolute;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
-  animation: gridPulse 4s ease-in-out infinite;
-}
-
-.about-image-section .grid-line.horizontal {
-  width: 100%;
-  height: 1px;
-  top: var(--position);
-  left: 0;
-}
-
-.about-image-section .grid-line.vertical {
-  width: 1px;
-  height: 100%;
-  left: var(--position);
-  top: 0;
-  background: linear-gradient(0deg, transparent, #00ffff, transparent);
-}
-
-.about-image-section .grid-line:nth-child(2n) {
-  background: linear-gradient(90deg, transparent, #ff00ff, transparent);
-  animation-delay: -2s;
-}
-
-.about-image-section .grid-line.vertical:nth-child(2n) {
-  background: linear-gradient(0deg, transparent, #ff00ff, transparent);
-}
-
-/* Right Side - Text Content */
-.about-text-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: var(--spacing-sm) 0;
-  gap: var(--spacing-sm);
-  max-width: 750px !important;
-  width: 100%;
-  margin: 0 auto;
-}
-
+/* ───────── From 1024px: poster pinned on the left, text scrolling on the right ───────── */
 @media (min-width: 1024px) {
-  .about-text-section {
-    width: 750px !important;
+  .about-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    justify-items: stretch;
+    align-items: start;
+    gap: clamp(32px, 5vw, 80px);
+  }
+
+  .about-side {
+    position: sticky;
+    top: calc(var(--navbar-height, 70px) + clamp(16px, 4.5vh, 52px));
+  }
+
+  .target {
+    --w: clamp(270px, min(28vw, 46vh), 400px);
+  }
+
+  .about-copy {
+    padding-left: 30px;
+    padding-bottom: clamp(24px, 9vh, 110px); /* keeps the poster pinned until the last skill is well in view */
+  }
+
+  /* how far you have read: a line that fills beside the text */
+  .about-rail {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: rgba(127, 140, 160, 0.22);
+  }
+
+  .about-rail i {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(var(--h-cyan), var(--h-magenta));
+    box-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
+    transform-origin: top;
+  }
+
+  /* shade only the text column, as in the hero, so the poster and the city beside it stay bright */
+  .about--3d::before {
+    background:
+      linear-gradient(to right, rgba(5, 3, 15, 0.18) 0%, rgba(5, 3, 15, 0.18) 34%, rgba(5, 3, 15, 0.74) 47%, rgba(5, 3, 15, 0.84) 72%, rgba(5, 3, 15, 0.72) 100%),
+      linear-gradient(to bottom, rgba(5, 3, 15, 0.5) 0%, transparent 10%);
   }
 }
 
-.about-text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  max-width: 750px !important;
-  width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .about-text {
-    width: 750px !important;
+@media (pointer: coarse) {
+  .loadout button {
+    min-height: 42px;
   }
 }
 
-.about-heading {
-  font-size: clamp(1.777rem, 3.556vw, 2.369rem);
-  font-family: var(--font-primary);
-  font-weight: 900;
-  line-height: 1;
-  margin: 0;
-  position: relative;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  will-change: transform, filter;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
+@keyframes aboutSpin {
+  to { transform: rotate(360deg); }
 }
 
-/* Light Theme About Heading */
-.about.light .about-heading {
-  color: #1e293b;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+@keyframes aboutPing {
+  to { transform: scale(9); opacity: 0; }
 }
 
-/* Dark Theme About Heading */
-.about.dark .about-heading {
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-  animation: glitchText 6s infinite;
+@keyframes aboutSpark {
+  to { transform: rotate(var(--a)) translateX(46px) scaleX(0.2); opacity: 0; }
 }
 
-.about-subheading {
-  font-size: clamp(1.244rem, 2.667vw, 1.777rem);
-  font-family: var(--font-primary);
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0;
-  position: relative;
-  letter-spacing: 0.5px;
-  transition: color 0.3s ease;
+@keyframes aboutDamage {
+  to { transform: translateY(-34px); opacity: 0; }
 }
 
-/* Light Theme About Subheading */
-.about.light .about-subheading {
-  color: #475569;
+/* covered by 28% of the way through, held until the poster has changed, then lifted */
+@keyframes aboutWipe {
+  0% { transform: scaleY(0); transform-origin: top; }
+  28%, 62% { transform: scaleY(1); transform-origin: top; }
+  62.01% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
 }
 
-/* Dark Theme About Subheading */
-.about.dark .about-subheading {
-  color: var(--neon-blue);
-  text-shadow: 0 0 15px rgba(0, 245, 255, 0.5);
+@keyframes aboutSheen {
+  60%, 100% { transform: translateX(100%); }
 }
 
-.about-description {
-  font-size: clamp(0.889rem, 1.778vw, 1rem);
-  font-weight: 400;
-  line-height: 1.6;
-  margin: 0;
-  transition: color 0.3s ease;
+@keyframes aboutShieldOut {
+  30% { opacity: 0.9; filter: brightness(2.4); }
+  100% { opacity: 0; transform: scale(1.04); visibility: hidden; }
 }
 
-/* Light Theme Description */
-.about.light .about-description {
-  color: #475569;
+@keyframes aboutShard {
+  to { transform: rotate(var(--turn)) translateX(clamp(130px, 24vw, 280px)) rotate(200deg) scale(0.3); opacity: 0; }
 }
 
-/* Dark Theme Description */
-.about.dark .about-description {
-  color: rgba(255, 255, 255, 0.9);
+@keyframes aboutTagIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.8); }
 }
-
-/* Skills Container */
-.skills-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-}
-
-.skill-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.skill-card {
-  padding: clamp(1.2rem, 3vw, 1.8rem);
-  border-radius: clamp(14.22px, 3.56vw, 21.33px);
-  background: rgba(0, 0, 0, 0.9);
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  backdrop-filter: blur(15px);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  transform-style: preserve-3d;
-  will-change: transform, filter;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.shield-overlay { position: absolute; inset: 0; background: radial-gradient(420px circle at var(--sx, 50%) var(--sy, 50%), rgba(0,255,255,0.38), transparent 42%), linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,255,255,0.12)); z-index: 5; pointer-events: auto; display: block; backdrop-filter: blur(3px) saturate(1.05); box-shadow: inset 0 0 24px rgba(0,255,255,0.25), 0 0 18px rgba(0,255,255,0.12); }
-.shield-overlay.broken { opacity: 0; pointer-events: none; transform: scale(1.02); transition: opacity 0.3s ease, transform 0.3s ease; }
-.shield-shards { position: absolute; inset: 0; pointer-events: none; }
-.shard { position: absolute; background: rgba(0,255,255,0.3); box-shadow: 0 0 12px rgba(0,255,255,0.25); border-radius: 2px; transform: rotate(var(--r, 0deg)); opacity: 0.9; }
-.s1 { left: 10%; top: 12%; width: 22%; height: 2px; --r: 8deg; }
-.s2 { left: 34%; top: 22%; width: 28%; height: 2px; --r: -6deg; }
-.s3 { left: 18%; top: 40%; width: 30%; height: 2px; --r: 12deg; }
-.s4 { left: 52%; top: 34%; width: 26%; height: 2px; --r: -10deg; }
-.s5 { left: 8%; top: 62%; width: 24%; height: 2px; --r: 6deg; }
-.s6 { left: 36%; top: 58%; width: 30%; height: 2px; --r: -12deg; }
-.s7 { left: 64%; top: 50%; width: 28%; height: 2px; --r: 4deg; }
-.s8 { left: 22%; top: 76%; width: 34%; height: 2px; --r: -8deg; }
-.s9 { left: 56%; top: 72%; width: 30%; height: 2px; --r: 10deg; }
-.s10 { left: 14%; top: 28%; width: 2px; height: 12%; --r: 0deg; }
-.s11 { left: 44%; top: 46%; width: 2px; height: 16%; --r: 0deg; }
-.s12 { left: 72%; top: 28%; width: 2px; height: 12%; --r: 0deg; }
-.shield-pulse { position: absolute; left: var(--sx, 50%); top: var(--sy, 50%); width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.9); box-shadow: 0 0 12px rgba(255,255,255,0.7); transform: translate(-50%, -50%) scale(1); animation: shieldBurst 600ms ease-out forwards; }
-@keyframes shieldBurst { 0% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.8); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(3); } }
-
-.shield-hud { position: absolute; left: 10px; right: 10px; bottom: 10px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(0,0,0,0.35); border: 1px solid rgba(0,255,255,0.35); border-radius: 10px; backdrop-filter: blur(6px); color: var(--current-text-primary); z-index: 6; }
-.hp-label { font-weight: 800; font-size: 0.75rem; color: var(--neon-blue); letter-spacing: 0.5px; }
-.hp-bar { position: relative; height: 8px; border-radius: 999px; background: rgba(0,255,255,0.14); overflow: hidden; box-shadow: inset 0 0 12px rgba(0,255,255,0.12); }
-.hp-fill { position: absolute; inset: 0; width: 0; background: linear-gradient(90deg, rgba(57,255,20,0.9), rgba(0,245,255,0.9)); box-shadow: 0 0 10px rgba(0,245,255,0.4); transition: width 350ms ease; }
-.hp-glow { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); mix-blend-mode: screen; opacity: 0.4; }
-.hp-value { font-weight: 900; font-size: 0.8rem; color: var(--current-text-primary); }
-.hp-ping { position: absolute; right: 12px; top: 50%; width: 6px; height: 6px; border-radius: 50%; background: rgba(0,245,255,0.9); transform: translateY(-50%); box-shadow: 0 0 12px rgba(0,245,255,0.7); animation: ping 700ms ease-out forwards; }
-@keyframes ping { 0% { opacity: 0.9; transform: translateY(-50%) scale(0.8); } 100% { opacity: 0; transform: translateY(-50%) scale(2.6); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .shield-overlay { background: rgba(255,255,255,0.06); }
-  .shield-pulse { animation: none; opacity: 0; }
-  .hp-fill { transition: none; }
-  .hp-ping { animation: none; opacity: 0; }
-}
-
-.unlocked-banner { position: absolute; left: 50%; top: 12%; transform: translate(-50%, -50%) scale(0.9); display: inline-flex; flex-direction: column; align-items: center; gap: 6px; z-index: 7; animation: unlockPop 700ms ease-out forwards, unlockFade 2400ms ease 1400ms forwards; pointer-events: none; }
-.unlocked-text { font-family: var(--font-primary); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: clamp(1rem, 3vw, 1.5rem); background: linear-gradient(90deg, #00ffff, #ff00ff, #ffff00); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 18px rgba(0,255,255,0.45); position: relative; }
-.unlocked-text::before, .unlocked-text::after { content: attr(data-text); position: absolute; inset: 0; }
-.unlocked-text::before { color: rgba(0,255,255,0.6); transform: translate(-1px, 0); mix-blend-mode: screen; animation: unlockGlitch 2.4s infinite steps(1); }
-.unlocked-text::after { color: rgba(255,0,255,0.6); transform: translate(1px, 0); mix-blend-mode: screen; animation: unlockGlitch 1.8s infinite steps(1) reverse; }
-.unlocked-accent { width: 0; height: 2px; background: linear-gradient(90deg, #00ffff, #ff00ff, #ffff00); border-radius: 2px; box-shadow: 0 0 10px rgba(0,255,255,0.4); animation: unlockLine 900ms ease-out forwards; }
-@keyframes unlockPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-@keyframes unlockFade { 0% { opacity: 1 } 100% { opacity: 0 } }
-@keyframes unlockLine { 0% { width: 0 } 100% { width: 120px } }
-@keyframes unlockGlitch { 0% { transform: translate(-1px, 0) } 50% { transform: translate(-3px, 0) } 100% { transform: translate(-1px, 0) } }
-@media (prefers-reduced-motion: reduce) { .unlocked-banner { animation: none; opacity: 0; } .unlocked-text::before, .unlocked-text::after { animation: none; } .unlocked-accent { animation: none; width: 120px; } }
-
-.skill-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transform: translateX(-100%) skewX(-45deg);
-  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-}
-
-.skill-card::after {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  background: linear-gradient(
-    45deg,
-    var(--neon-blue),
-    var(--neon-purple),
-    var(--neon-pink),
-    var(--neon-blue)
-  );
-  background-size: 400% 400%;
-  border-radius: 14px;
-  z-index: -1;
-  opacity: 0;
-  animation: gradientShift 3s ease-in-out infinite;
-  transition: opacity 0.3s ease;
-}
-
-.skill-card.unlocked:hover {
-  transform: translateY(-8px) scale(1.02);
-  border-color: var(--neon-blue);
-  box-shadow: 0 15px 40px rgba(0, 245, 255, 0.3),
-    0 0 30px rgba(0, 245, 255, 0.2), inset 0 0 20px rgba(0, 245, 255, 0.1);
-  animation: glitchHover 0.5s ease-in-out infinite;
-}
-
-.skill-card.unlocked:hover::before {
-  transform: translateX(100%) skewX(-45deg);
-}
-
-.skill-card.unlocked:hover::after {
-  opacity: 0.7;
-}
-
-.skill-card.unlocked:nth-child(1):hover {
-  border-color: var(--neon-blue);
-  box-shadow: 0 15px 40px rgba(0, 245, 255, 0.3),
-    0 0 30px rgba(0, 245, 255, 0.2), inset 0 0 20px rgba(0, 245, 255, 0.1);
-}
-
-.skill-card.unlocked:nth-child(2):hover {
-  border-color: var(--neon-purple);
-  box-shadow: 0 15px 40px rgba(191, 0, 255, 0.3),
-    0 0 30px rgba(191, 0, 255, 0.2), inset 0 0 20px rgba(191, 0, 255, 0.1);
-}
-
-.skill-card.unlocked:nth-child(3):hover {
-  border-color: var(--neon-pink);
-  box-shadow: 0 15px 40px rgba(255, 20, 147, 0.3),
-    0 0 30px rgba(255, 20, 147, 0.2), inset 0 0 20px rgba(255, 20, 147, 0.1);
-}
-
-.skill-card.locked:hover { transform: none; border-color: rgba(0, 255, 255, 0.3); box-shadow: none; animation: none; }
-.skill-card.locked:hover::before { transform: translateX(-100%) skewX(-45deg); }
-.skill-card.locked:hover::after { opacity: 0; }
-
-.skill-title {
-  font-size: clamp(0.889rem, 2vw, 1.125rem);
-  font-family: var(--font-primary);
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  position: relative;
-  z-index: 2;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-  transition: color 0.3s ease;
-}
-
-.skill-description {
-  font-size: clamp(0.75rem, 1.6vw, 0.889rem);
-  font-weight: 400;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-  position: relative;
-  z-index: 2;
-  flex-grow: 1;
-}
-
-/* Background Effects - Same as Hero */
-.about-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-}
-
-.about-bg .circuit-pattern {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(
-      rgba(0, 255, 255, 0.08) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(0, 255, 255, 0.08) 1px, transparent 1px),
-    radial-gradient(
-      circle at 25% 25%,
-      rgba(0, 255, 255, 0.05) 2px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 75% 75%,
-      rgba(255, 0, 255, 0.05) 2px,
-      transparent 2px
-    );
-  background-size: clamp(40px, 8vw, 60px) clamp(40px, 8vw, 60px),
-    clamp(40px, 8vw, 60px) clamp(40px, 8vw, 60px),
-    clamp(20px, 4vw, 30px) clamp(20px, 4vw, 30px),
-    clamp(20px, 4vw, 30px) clamp(20px, 4vw, 30px);
-  animation: circuitFlow 25s linear infinite;
-  opacity: 0.4;
-}
-
-
-
-.about-bg .glitch-overlay {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 100px,
-    rgba(0, 255, 255, 0.03) 100px,
-    rgba(0, 255, 255, 0.03) 101px
-  );
-  animation: glitchScan 4s ease-in-out infinite;
-  opacity: 0.5;
-}
-
-.about-bg .scan-grid {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 50px,
-    rgba(255, 0, 255, 0.02) 50px,
-    rgba(255, 0, 255, 0.02) 51px
-  );
-  animation: scanGrid 6s ease-in-out infinite;
-  opacity: 0.3;
-}
-
-/* Animations - Same as Hero */
-@keyframes imageFloat {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-10px) rotate(1deg);
-  }
-  50% {
-    transform: translateY(-5px) rotate(0deg);
-  }
-  75% {
-    transform: translateY(-15px) rotate(-1deg);
-  }
-}
-
-@keyframes glowPulse {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes scanOverlay {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-
-@keyframes hudFloat {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes scanLine {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes statFill {
-  0%,
-  100% {
-    width: 95%;
-  }
-  50% {
-    width: 100%;
-  }
-}
-
-@keyframes glitchParticle {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 1;
-  }
-  25% {
-    transform: translate(10px, -10px) scale(1.2);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-5px, 5px) scale(0.8);
-    opacity: 0.6;
-  }
-  75% {
-    transform: translate(-10px, -5px) scale(1.1);
-    opacity: 0.9;
-  }
-}
-
-@keyframes particleGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
-  }
-  50% {
-    box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
-  }
-}
-
-@keyframes gridPulse {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-@keyframes glitchText {
-  0%,
-  90%,
-  100% {
-    transform: translate(0);
-  }
-  20% {
-    transform: translate(-2px, 2px);
-  }
-  40% {
-    transform: translate(-2px, -2px);
-  }
-  60% {
-    transform: translate(2px, 2px);
-  }
-  80% {
-    transform: translate(2px, -2px);
-  }
-}
-
-@keyframes gradientShift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes glitchHover {
-  0%,
-  100% {
-    transform: translateY(-8px) scale(1.02) translate(0);
-    filter: hue-rotate(0deg);
-  }
-  10% {
-    transform: translateY(-8px) scale(1.02) translate(-2px, 1px);
-    filter: hue-rotate(90deg);
-  }
-  20% {
-    transform: translateY(-8px) scale(1.02) translate(1px, -2px);
-    filter: hue-rotate(180deg);
-  }
-  30% {
-    transform: translateY(-8px) scale(1.02) translate(-1px, 2px);
-    filter: hue-rotate(270deg);
-  }
-  40% {
-    transform: translateY(-8px) scale(1.02) translate(2px, -1px);
-    filter: hue-rotate(360deg);
-  }
-  50% {
-    transform: translateY(-8px) scale(1.02) translate(-2px, -1px);
-    filter: hue-rotate(45deg);
-  }
-  60% {
-    transform: translateY(-8px) scale(1.02) translate(1px, 2px);
-    filter: hue-rotate(135deg);
-  }
-  70% {
-    transform: translateY(-8px) scale(1.02) translate(-1px, -2px);
-    filter: hue-rotate(225deg);
-  }
-  80% {
-    transform: translateY(-8px) scale(1.02) translate(2px, 1px);
-    filter: hue-rotate(315deg);
-  }
-  90% {
-    transform: translateY(-8px) scale(1.02) translate(-2px, 2px);
-    filter: hue-rotate(0deg);
-  }
-}
-
-@keyframes circuitFlow {
-  0% {
-    background-position: 0 0, 0 0, 0 0, 0 0;
-  }
-  100% {
-    background-position: 60px 60px, 60px 60px, 30px 30px, 30px 30px;
-  }
-}
-
-@keyframes dataFlow {
-  0% {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
-
-@keyframes glitchScan {
-  0%,
-  100% {
-    transform: translateX(-100%);
-  }
-  50% {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes scanGrid {
-  0%,
-  100% {
-    transform: translateY(-100%);
-  }
-  50% {
-    transform: translateY(100%);
-  }
-}
-
-@keyframes dataCorruption {
-  0%,
-  100% {
-    opacity: 0;
-    transform: translateX(-100%) skew(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(100%) skew(5deg);
-  }
-}
-
-@keyframes matrixRain {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 0 100px;
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .about {
-    padding-top: clamp(50px, 8vw, 70px);
-  }
-
-  .about-container {
-    min-height: calc(100vh - 70px);
-    padding: var(--spacing-md) var(--spacing-sm);
-  }
-
-  .about-content {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-xl);
-    text-align: center;
-  }
-
-  .about-image-section {
-    order: -1;
-  }
-
-  .about-image-section .image-container {
-    width: clamp(320px, 46.67vw, 400px);
-    height: clamp(320px, 46.67vw, 400px);
-  }
-
-  .about-image-section .image-placeholder {
-    width: clamp(267px, 40vw, 347px);
-    height: clamp(267px, 40vw, 347px);
-  }
-
-  .about-text-section {
-    text-align: center;
-    padding: var(--spacing-md) 0;
-  }
-
-  .about-text {
-    gap: var(--spacing-lg);
-  }
-
-  .about-heading {
-    font-size: clamp(1.2rem, 5vw, 2.2rem);
-    line-height: 1.2;
-    margin-bottom: var(--spacing-md);
-  }
-
-  .about-subheading {
-    font-size: clamp(1rem, 4vw, 1.6rem);
-  }
-
-  .about-description {
-    font-size: clamp(0.675rem, 2.625vw, 0.975rem);
-    text-align: center;
-    padding: var(--spacing-md);
-    margin: var(--spacing-md) 0;
-  }
-
-  .skills-container {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
-
-  .skill-card {
-    padding: clamp(0.8rem, 2vw, 1.2rem);
-  }
-
-  .skill-title {
-    font-size: clamp(0.8rem, 2.5vw, 1rem);
-  }
-
-  .skill-description {
-    font-size: clamp(0.7rem, 2vw, 0.85rem);
-  }
-
-  .about-image-section .hud-element {
-    font-size: clamp(0.6rem, 2vw, 0.7rem);
-    padding: clamp(4px, 1.5vw, 8px) clamp(6px, 2vw, 10px);
-    min-width: auto;
-  }
-
-  .about-image-section .terminal-window {
-    min-width: clamp(100px, 25vw, 140px);
-  }
-
-  .about-image-section .code-panel {
-    min-width: clamp(80px, 20vw, 120px);
-  }
-
-  .about-image-section .game-stats {
-    min-width: clamp(70px, 18vw, 100px);
-  }
-
-  .about-image-section .glitch-particle {
-    width: clamp(3px, 1vw, 5px);
-    height: clamp(3px, 1vw, 5px);
-  }
-
-  .about-image-section .hologram-ring {
-    width: clamp(120px, 30vw, 180px);
-    height: clamp(120px, 30vw, 180px);
-    margin: clamp(-60px, -15vw, -90px) 0 0 clamp(-60px, -15vw, -90px);
-  }
-}
-
-@media (max-width: 768px) {
-  .about {
-    padding-top: clamp(45px, 7vw, 60px);
-  }
-
-  .about-container {
-    min-height: calc(100vh - 70px);
-    padding: var(--spacing-md) var(--spacing-sm);
-  }
-
-  .about-content {
-    gap: var(--spacing-lg);
-  }
-
-  .about-image-section .image-container {
-    width: clamp(267px, 53.33vw, 347px);
-    height: clamp(267px, 53.33vw, 347px);
-  }
-
-  .about-image-section .image-placeholder {
-    width: clamp(213px, 46.67vw, 293px);
-    height: clamp(213px, 46.67vw, 293px);
-  }
-
-  .about-heading {
-    font-size: clamp(1rem, 6vw, 1.8rem);
-  }
-
-  .about-subheading {
-    font-size: clamp(0.8rem, 4vw, 1.2rem);
-  }
-
-  .about-description {
-    font-size: clamp(0.75rem, 3vw, 0.95rem);
-    padding: 0 var(--spacing-sm);
-    text-align: center;
-  }
-
-  .about-image-section .hud-element {
-    font-size: clamp(0.6rem, 2vw, 0.7rem);
-    padding: clamp(4px, 1.5vw, 8px) clamp(6px, 2vw, 10px);
-    min-width: auto;
-  }
-
-  .about-image-section .terminal-window {
-    min-width: clamp(100px, 25vw, 140px);
-  }
-
-  .about-image-section .code-panel {
-    min-width: clamp(80px, 20vw, 120px);
-  }
-
-  .about-image-section .game-stats {
-    min-width: clamp(70px, 18vw, 100px);
-  }
-
-  .about-image-section .glitch-particle {
-    width: clamp(3px, 1vw, 5px);
-    height: clamp(3px, 1vw, 5px);
-  }
-
-  .about-image-section .hologram-ring {
-    width: clamp(120px, 30vw, 180px);
-    height: clamp(120px, 30vw, 180px);
-    margin: clamp(-60px, -15vw, -90px) 0 0 clamp(-60px, -15vw, -90px);
-  }
-
-  .skills-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-sm);
-  }
-
-  .skill-card {
-    padding: clamp(0.8rem, 2vw, 1.2rem);
-  }
-
-  .skill-title {
-    font-size: clamp(0.8rem, 3vw, 1rem);
-  }
-
-  .skill-description {
-    font-size: clamp(0.4rem, 2vw, 0.6rem);
-  }
-}
-
-@media (max-width: 480px) {
-  .about {
-    padding-top: 60px;
-  }
-
-  .about-container {
-    min-height: calc(100vh - 60px);
-    padding: var(--spacing-sm) var(--spacing-xs);
-  }
-
-  .about-content {
-    gap: var(--spacing-md);
-  }
-
-  .about-image-section .image-container {
-    width: clamp(213px, 60vw, 293px);
-    height: clamp(213px, 60vw, 293px);
-  }
-
-  .about-image-section .image-placeholder {
-    width: clamp(173px, 53.33vw, 240px);
-    height: clamp(173px, 53.33vw, 240px);
-  }
-
-  .about-text-section {
-    padding: var(--spacing-sm) 0;
-  }
-
-  .about-text {
-    gap: var(--spacing-md);
-  }
-
-  .about-heading {
-    font-size: clamp(0.9rem, 7vw, 1.6rem);
-    margin-bottom: var(--spacing-sm);
-  }
-
-  .about-subheading {
-    font-size: clamp(0.7rem, 5vw, 1.2rem);
-  }
-
-  .about-description {
-    font-size: clamp(0.4875rem, 2.625vw, 0.6375rem);
-    padding: 0 var(--spacing-xs);
-    line-height: 1.5;
-    text-align: center;
-  }
-
-  .skills-container {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-xs);
-  }
-
-  .skill-card {
-    padding: clamp(0.225rem, 1.40625vw, 0.39375rem)
-      clamp(0.45rem, 1.96875vw, 0.675rem);
-  }
-
-  .skill-title {
-    font-size: clamp(0.7rem, 3.5vw, 0.9rem);
-  }
-
-  .skill-description {
-    font-size: clamp(0.35rem, 2vw, 0.5rem);
-  }
-
-  .about-image-section .hud-element {
-    font-size: clamp(0.5rem, 1.8vw, 0.65rem);
-    padding: clamp(3px, 1vw, 6px) clamp(4px, 1.5vw, 8px);
-  }
-
-  .about-image-section .gaming-social {
-    width: clamp(14px, 3.9vw, 20px);
-    height: clamp(14px, 3.9vw, 20px);
-  }
-
-  .about-image-section .social-svg {
-    width: clamp(9px, 2.6vw, 14px);
-    height: clamp(9px, 2.6vw, 14px);
-  }
-}
-
-/* Fix horizontal overflow and viewport issues */
-* {
-  box-sizing: border-box;
-}
-
-.about {
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100vw;
-}
-
-.about-container {
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100vw;
-  box-sizing: border-box;
-}
-
-.about-content {
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100vw;
-  box-sizing: border-box;
-}
-
-/* Removed duplicate media query - consolidated into comprehensive one below */
-
-/* Ultra-small screens (320px and below) - Enhanced mobile support */
-@media (max-width: 320px) {
-  .about {
-    padding-top: 55px;
-    min-height: calc(100vh - 55px);
-  }
-
-  .about-container {
-    min-height: calc(100vh - 55px);
-    padding: clamp(8px, 3vw, 12px) clamp(4px, 2vw, 8px);
-    gap: clamp(12px, 4vw, 16px);
-  }
-
-  .about-content {
-    gap: clamp(8px, 3vw, 12px);
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .about-image-section {
-    order: -1;
-  }
-
-  .about-image-section .image-container {
-    width: clamp(160px, 46.67vw, 213px);
-    height: clamp(160px, 46.67vw, 213px);
-  }
-
-  .about-image-section .image-placeholder {
-    width: clamp(133px, 40vw, 173px);
-    height: clamp(133px, 40vw, 173px);
-  }
-
-  .about-text-section {
-    padding: clamp(4px, 2vw, 8px) 0;
-    text-align: center;
-    width: 100%;
-  }
-
-  .about-text {
-    gap: clamp(8px, 3vw, 12px);
-  }
-
-  .about-heading {
-    font-size: clamp(0.8rem, 6vw, 1.2rem);
-    margin-bottom: clamp(4px, 2vw, 8px);
-    line-height: 1.1;
-  }
-
-  .about-subheading {
-    font-size: clamp(0.6rem, 4.5vw, 0.9rem);
-    line-height: 1.2;
-  }
-
-  .about-description {
-    font-size: clamp(0.45rem, 3.375vw, 0.675rem);
-    padding: clamp(4px, 2vw, 8px);
-    margin: clamp(4px, 2vw, 8px) 0;
-    line-height: 1.2;
-    text-align: center;
-    width: 100%;
-  }
-
-  .skills-container {
-    grid-template-columns: 1fr;
-    gap: clamp(4px, 2vw, 8px);
-    width: 100%;
-  }
-
-  .skill-card {
-    padding: clamp(4px, 2vw, 8px);
-    margin: clamp(2px, 1vw, 4px) 0;
-  }
-
-  .skill-title {
-    font-size: clamp(0.6rem, 4vw, 0.8rem);
-    line-height: 1.1;
-  }
-
-  .skill-description {
-    font-size: clamp(0.3rem, 2.5vw, 0.45rem);
-    line-height: 1.2;
-  }
-
-  .about-image-section .hud-element {
-    font-size: clamp(0.4rem, 1.5vw, 0.5rem);
-    padding: clamp(2px, 0.8vw, 4px) clamp(3px, 1.2vw, 6px);
-  }
-
-  .about-image-section .gaming-social {
-    width: clamp(12px, 3.5vw, 16px);
-    height: clamp(12px, 3.5vw, 16px);
-  }
-
-  .about-image-section .social-svg {
-    width: clamp(8px, 2.2vw, 12px);
-    height: clamp(8px, 2.2vw, 12px);
-  }
-
-  .about-image-section .glitch-particle {
-    width: clamp(2px, 0.8vw, 3px);
-    height: clamp(2px, 0.8vw, 3px);
-  }
-
-  .about-image-section .hologram-ring {
-    width: clamp(80px, 25vw, 120px);
-    height: clamp(80px, 25vw, 120px);
-    margin: clamp(-40px, -12.5vw, -60px) 0 0 clamp(-40px, -12.5vw, -60px);
-  }
-}
-
-/* Fix for 1364x648, 1188x576 and similar medium resolutions */
-@media (min-width: 1100px) and (max-width: 1500px) {
-  .about {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-  }
-
-  .about-container {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-    padding: clamp(8px, 1.2vw, 16px);
-    margin: 0 auto;
-  }
-
-  .about-content {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-    gap: clamp(12px, 1.8vw, 20px);
-    grid-template-columns: 0.4fr 1.6fr;
-  }
-
-  .about-image-section {
-    width: 100%;
-    max-width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-  }
-
-  .about-image-section .image-container {
-    width: clamp(280px, 32vw, 380px);
-    height: clamp(280px, 32vw, 380px);
-  }
-
-  .about-image-section .image-placeholder {
-    width: clamp(260px, 30vw, 360px);
-    height: clamp(260px, 30vw, 360px);
-  }
-
-  .about-text-section {
-    width: 100%;
-    max-width: 100%;
-    padding: 0 clamp(4px, 0.8vw, 12px);
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  .about-text {
-    width: 100%;
-    max-width: 100%;
-    padding: 0;
-    box-sizing: border-box;
-    gap: clamp(8px, 1.2vw, 12px);
-  }
-
-  .about-heading {
-    font-size: clamp(1.2rem, 2.2vw, 1.6rem) !important;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    max-width: 100%;
-    line-height: 1.2;
-  }
-
-  .about-subheading {
-    font-size: clamp(1rem, 1.8vw, 1.3rem) !important;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    max-width: 100%;
-    line-height: 1.3;
-  }
-
-  .about-description {
-    font-size: clamp(0.75rem, 1.4vw, 0.9rem) !important;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    max-width: 100%;
-    line-height: 1.4;
-    padding: clamp(4px, 0.8vw, 8px) 0;
-  }
-
-  .skills-container {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    grid-template-columns: repeat(2, 1fr);
-    gap: clamp(6px, 1vw, 10px);
-  }
-
-  .skill-card {
-    padding: clamp(6px, 1vw, 10px);
-    box-sizing: border-box;
-  }
-
-  .skill-title {
-    font-size: clamp(0.7rem, 1.3vw, 0.85rem) !important;
-    line-height: 1.2;
-  }
-
-  .skill-description {
-    font-size: clamp(0.6rem, 1.1vw, 0.75rem) !important;
-    line-height: 1.3;
-  }
-
-  /* Ensure floating elements don't cause overflow */
-  .about-image-section .hud-element {
-    max-width: clamp(80px, 12vw, 120px);
-    font-size: clamp(0.55rem, 0.9vw, 0.7rem);
-    padding: clamp(3px, 0.6vw, 6px) clamp(4px, 0.8vw, 8px);
-  }
-
-  .about-image-section .terminal-window {
-    right: clamp(6px, 1.5vw, 12%);
-    top: clamp(6px, 1.5vw, 8%);
-    min-width: clamp(70px, 10vw, 100px);
-  }
-
-  .about-image-section .code-panel {
-    right: clamp(3px, 0.8vw, 6%);
-    bottom: clamp(18%, 4vw, 25%);
-    min-width: clamp(60px, 8vw, 90px);
-  }
-
-  .about-image-section .game-stats {
-    left: clamp(3px, 0.8vw, 6%);
-    min-width: clamp(50px, 7vw, 80px);
-  }
-}
-
-@media (min-width: 992px) and (max-width: 1199px) {
-  .about-text-section {
-    max-width: 750px !important;
-    padding: var(--spacing-md) var(--spacing-lg);
-  }
-
-  .about-text {
-    padding: 0 var(--spacing-md);
-  }
-}
-
-@media (min-width: 769px) and (max-width: 991px) {
-  .about-text-section {
-    max-width: 750px !important;
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-
-  .about-text {
-    padding: 0 var(--spacing-sm);
-  }
-}
-
-/* Specific fix for 1188x576 and similar resolutions */
-@media (min-width: 1180px) and (max-width: 1200px) and (min-height: 570px) and (max-height: 580px) {
-  .about {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-  }
-
-  .about-container {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    padding: 8px 12px !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-  }
-
-  .about-content {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    gap: 16px !important;
-    grid-template-columns: 1fr 1fr !important;
-    box-sizing: border-box !important;
-  }
-
-  .about-image-section {
-    padding: 0 !important;
-  }
-
-  .about-image-section .image-container {
-    width: 240px !important;
-    height: 240px !important;
-  }
-
-  .about-image-section .image-placeholder {
-    width: 220px !important;
-    height: 220px !important;
-  }
-
-  .about-text-section {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 8px !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-  }
-
-  .about-text {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    gap: 8px !important;
-    box-sizing: border-box !important;
-  }
-
-  .about-heading {
-    font-size: 1.3rem !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    line-height: 1.2 !important;
-  }
-
-  .about-subheading {
-    font-size: 1.1rem !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    line-height: 1.3 !important;
-  }
-
-  .about-description {
-    font-size: 0.8rem !important;
-    line-height: 1.3 !important;
-    padding: 4px 0 !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-  }
-
-  .skills-container {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .skill-card {
-    padding: 6px !important;
-    box-sizing: border-box !important;
-  }
-
-  .skill-title {
-    font-size: 0.75rem !important;
-    line-height: 1.2 !important;
-  }
-
-  .skill-description {
-    font-size: 0.65rem !important;
-    line-height: 1.3 !important;
-  }
-
-  /* Adjust floating elements for smaller screens */
-  .about-image-section .hud-element {
-    opacity: 0.7;
-    transform: scale(0.8);
-  }
-
-  .about-image-section .terminal-window,
-  .about-image-section .code-panel,
-  .about-image-section .game-stats {
-    display: none !important;
-  }
-}
-.about-text-section {
-  padding: calc(var(--spacing-sm) / 2) 0;
-}
-
-.about-text {
-  gap: calc(var(--spacing-md) / 2);
-}
-
-.about-description {
-  padding: 0 calc(var(--spacing-xs) / 1);
-  font-size: clamp(0.8125rem, 5vw, 1rem);
-}
-
-.skills-container {
-    gap: calc(var(--spacing-sm) / 1.6);
-  }
-
-  .skill-card {
-    padding: calc(var(--spacing-xs) * 1.25);
-}
-
-.about-heading {
-  font-size: clamp(1.25rem, 8.75vw, 1.875rem);
-}
-
-.about-subheading {
-  font-size: clamp(1.125rem, 6.25vw, 1.5rem);
-}
-
-/* Fix for small screens including 386x586 resolution */
-@media (max-width: 400px) {
-  .about {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-    padding-top: clamp(40px, 6vw, 50px) !important;
-  }
-
-  .about-container {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-    padding: clamp(8px, 2vw, 16px);
-  }
-
-  .about-content {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-    flex-direction: column;
-    gap: clamp(12px, 3vw, 20px);
-  }
-
-  .about-image-section {
-    order: -1;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .about-image-section .image-container {
-    width: clamp(250px, 75vw, 350px) !important;
-    height: clamp(250px, 75vw, 350px) !important;
-  }
-
-  .about-image-section .image-placeholder {
-    width: clamp(225px, 68.75vw, 325px) !important;
-    height: clamp(225px, 68.75vw, 325px) !important;
-    animation: none !important;
-    transform: none !important;
-  }
-
-  .about-text-section {
-    width: 100%;
-    max-width: 100%;
-    padding: 0;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  .about-text {
-    width: 100%;
-    max-width: 100%;
-    gap: clamp(8px, 2vw, 12px);
-    box-sizing: border-box;
-  }
-
-  .about-heading {
-    font-size: clamp(1rem, 5vw, 1.4rem) !important;
-    line-height: 1.2;
-    word-wrap: break-word;
-  }
-
-  .about-subheading {
-    font-size: clamp(0.8rem, 4vw, 1.1rem) !important;
-    line-height: 1.3;
-    word-wrap: break-word;
-  }
-
-  .about-description {
-    font-size: clamp(0.6rem, 3vw, 0.85rem) !important;
-    line-height: 1.4;
-    padding: clamp(8px, 2vw, 12px);
-    margin: clamp(8px, 2vw, 12px) 0;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    max-width: 100%;
-  }
-
-  .skills-container {
-    grid-template-columns: 1fr !important;
-    gap: clamp(8px, 2vw, 12px);
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .skill-card {
-    padding: clamp(8px, 2vw, 12px);
-    margin: clamp(4px, 1vw, 6px) 0;
-    box-sizing: border-box;
-  }
-
-  .skill-title {
-    font-size: clamp(0.7rem, 3.5vw, 0.9rem) !important;
-    line-height: 1.2;
-  }
-
-  .skill-description {
-    font-size: clamp(0.55rem, 2.8vw, 0.75rem) !important;
-    line-height: 1.3;
-    word-wrap: break-word;
-  }
-
-  /* Adjust all animations for better performance */
-  .about-image-section .hud-element {
-    animation: none !important;
-    opacity: 0.6;
-    transform: scale(0.7);
-  }
-
-  .about-image-section .image-glow {
-    animation: none !important;
-    opacity: 0.2;
-  }
-
-  .about-image-section .gaming-overlay {
-    animation: none !important;
-    opacity: 0.1;
-  }
-
-  .about-image-section .glitch-particle {
-    display: none !important;
-  }
-
-  .about-image-section .hologram-ring {
-    animation: none !important;
-  }
-}
-
-/* Performance optimization for mobile devices */
-@media (max-width: 768px) {
-  /* Disable heavy animations on mobile for better performance */
-  .about-image-section .hud-element {
+  /* the bio is simply all lit */
+  .about-lead span {
+    opacity: 1 !important;
+  }
+
+  .target-frame,
+  .target-sight,
+  .shield::after,
+  .about-title::before,
+  .about-title::after {
     animation: none;
-  }
-
-  .about-image-section .image-glow {
-    animation: none;
-    opacity: 0.2;
-  }
-
-  .about-image-section .gaming-overlay {
-    animation: none;
-    opacity: 0.1;
-  }
-
-  .about-image-section .glitch-particle {
-    display: none;
-  }
-
-  .about-image-section .hologram-ring {
-    animation: none;
-  }
-
-  /* Keep only essential image animation */
-  .about-image-section .image-placeholder {
-    animation: none;
-    transform: none;
-  }
-
-  .about-image-section .image-placeholder:hover {
-    transform: scale(1.01);
-  }
-
-  .skills-container {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-sm);
-  }
-
-  .skill-card {
-    padding: var(--spacing-sm);
   }
 }
