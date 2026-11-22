@@ -299,7 +299,7 @@ function addHologram(material, holo, screen) {
 }
 
 function prepareGamepad(root, holo) {
-  const controls = {} // name -> { mesh, halo, rest, glow (0..1), target }
+  const controls = {} // name -> { mesh, halo, rest, glow (0..1), target, until (lit until this time) }
   const shared = {}
   const neon = []
 
@@ -438,12 +438,12 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
     uReveal: { value: 0 },
     uWarp: { value: 0 },
     uDim: { value: 1 },
-    uRipple: { value: new THREE.Vector4(0, 0, -100, 0) },
     uCursor: { value: new THREE.Vector3() },
     uEye: { value: new THREE.Vector3() },
     uMagnet: { value: 0 },
+    uRipple: { value: Array.from({ length: 4 }, () => new THREE.Vector4(0, 0, -100, 0)) },
     uMagnetDir: { value: [new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, -1)] },
-    uBlast: { value: new THREE.Vector4(0, 0, -1, -100) },
+    uBlast: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, -1, -100)) },
     uMirror: { value: quality.mirror ? 1 : 0 },
     uPixelRatio: { value: pixelRatio },
     uFacade: { value: facades },
@@ -553,7 +553,12 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
     padHover: 0, // 0..1, the cursor is over the docked gamepad
     padFlip: 0, // extra turn while spinPad() plays
     flashUntil: 0, // every control stays lit until this time
+    shake: 0, // camera shake from an impact, decays by itself
   }
+  // Clicks on the towers each take the next of eight bursts, so a new one starts while the
+  // last is still playing out instead of cutting it off.
+  let nextBlast = 0
+  let nextRipple = 0
   const demo = { name: '', until: 0, next: 3 } // the button the idle gamepad is pressing by itself
   const X_AXIS = new THREE.Vector3(1, 0, 0)
   const pointer = new THREE.Vector2()
@@ -734,6 +739,11 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
     // ...and on through Experience it sinks a little and raises its eyes to the gate ahead
     const onward = THREE.MathUtils.smoothstep(s, 2, 3)
     camera.position.set(px * 0.9, 2.5 + state.camLift + py * 0.45, rig.camZ + state.camBack).lerp(scratch.a.set(px * 0.7, 3 + lift * 10 + over * 13 - onward * 8 + py * 0.35, 10.5), m)
+    if (state.shake > 0.001) {
+      state.shake *= Math.exp(-dt * 7)
+      camera.position.x += (Math.random() - 0.5) * state.shake * 0.5
+      camera.position.y += (Math.random() - 0.5) * state.shake * 0.35
+    }
     camera.lookAt(scratch.a.set(px * 0.25, rig.lookY + state.camLift * 0.25, 0).lerp(scratch.b.set(px * 0.3, 0.4 - lift * 4.4 + over * 6 + onward * 26, -30 - over * 40 - onward * 190), m))
     // the further the page has scrolled into reading matter, the further the city sits back
     world.uDim.value = INTRO.dim + (HERO.dim - 0.2 * THREE.MathUtils.smoothstep(s, 0.6, 1.5) - INTRO.dim) * m
@@ -820,7 +830,7 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
       demo.next = t + 0.6 + Math.random() * 1.8
     }
     for (const [name, c] of Object.entries(controls)) {
-      const lit = c.target || (name === demo.name && t < demo.until) || t < state.flashUntil ? 1 : 0
+      const lit = c.target || (name === demo.name && t < demo.until) || t < state.flashUntil || t < c.until ? 1 : 0
       if (lit && !c.lit && c.target) recoil.v += 1.1 // a real press kicks the gamepad back
       c.lit = lit
       c.glow += (lit - c.glow) * (1 - Math.exp(-dt * 18))
@@ -853,6 +863,26 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
     composer.render()
   }
 
+  /**
+   * A burst through the blocks around a direction from the eye. Eight can play at once; if all
+   * eight are still going, this one is skipped rather than cutting the oldest off mid-burst
+   * (which is what made the blocks snap back when clicking fast).
+   */
+  function burstToward(direction) {
+    const slot = world.uBlast.value[nextBlast]
+    if (world.uTime.value - slot.w < 2.6) return
+    slot.set(direction.x, direction.y, direction.z, world.uTime.value)
+    nextBlast = (nextBlast + 1) % 8
+  }
+
+  /** A ring of light spreading across the street from x, z (world). Same rules as a burst. */
+  function rippleAt(x, z) {
+    const slot = world.uRipple.value[nextRipple]
+    if (world.uTime.value - slot.z < 4) return
+    slot.set(x, z - world.uScroll.value, world.uTime.value, 1)
+    nextRipple = (nextRipple + 1) % 4
+  }
+
   function setRunning(next) {
     if (disposed || running === next) return
     running = next
@@ -870,7 +900,7 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
     cancelTweens()
     view.mode = 'hero'
     view.mix = 1
-    Object.assign(state, { speed: HERO.speed, fovBoost: 0, camLift: 0, camBack: 0, padPush: 0, padShrink: 1, ringScale: 1, launched: false, padFlip: 0, flashUntil: 0 })
+    Object.assign(state, { speed: HERO.speed, fovBoost: 0, camLift: 0, camBack: 0, padPush: 0, padShrink: 1, ringScale: 1, launched: false, padFlip: 0, flashUntil: 0, shake: 0 })
     world.uWarp.value = 0
     final.uniforms.uAberration.value = 0.0016
     final.uniforms.uGlitch.value = 0
@@ -1011,15 +1041,16 @@ export async function createWorld(container, { low = false, mode = 'hero', onPro
       view.anchor = element
     },
 
-    /** A click on the scene: the blocks around it burst apart and a ring of light crosses the street. */
-    ripple(clientX, clientY) {
+    /** A click on the scene: the blocks that way burst apart, and on the floor a ring of light spreads out. */
+    click(clientX, clientY) {
+      if (view.mix < 1) return
       ray.setFromCamera({ x: (clientX / size.w) * 2 - 1, y: -((clientY / size.h) * 2 - 1) }, camera)
       const { origin, direction } = ray.ray
-      world.uBlast.value.set(direction.x, direction.y, direction.z, world.uTime.value)
-      if (direction.y >= -0.01) return false // clicked the sky
-      const hit = origin.clone().addScaledVector(direction, -origin.y / direction.y)
-      world.uRipple.value.set(hit.x, hit.z - world.uScroll.value, world.uTime.value, 1)
-      return true
+      burstToward(direction)
+      if (direction.y < -0.01) {
+        const reach = -origin.y / direction.y
+        rippleAt(origin.x + direction.x * reach, origin.z + direction.z * reach)
+      }
     },
 
     /** Hero: the gamepad spins once, every control flashes and a ring bursts out of it. */

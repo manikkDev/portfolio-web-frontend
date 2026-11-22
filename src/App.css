@@ -23,81 +23,15 @@
 }
 
 /* While the intro plays, the page behind it stays out of sight. */
-.App.intro-active > :not(.world-stage):not(.gi):not(.aim-cursor) {
+.App.intro-active > :not(.world-stage):not(.gi):not(.cur) {
   visibility: hidden;
 }
 
 /* As the intro leaves, the page fades up over the world while it flies into its hero view. */
-.App.intro-leaving > :not(.world-stage):not(.gi):not(.aim-cursor) {
+.App.intro-leaving > :not(.world-stage):not(.gi):not(.cur) {
   animation: page-arrive 800ms ease-out backwards;
 }
 
 @keyframes page-arrive {
   from { opacity: 0; }
-}
-
-/* ===== Custom Cursor (Desktop) ===== */
-.aim-cursor {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 44px;
-  height: 44px;
-  transform: translate3d(var(--aim-x, -100px), var(--aim-y, -100px), 0) translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 10001;
-  will-change: transform;
-}
-.aim-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 255, 255, 0.9);
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.4) inset, 0 0 12px rgba(0, 255, 255, 0.25);
-}
-.aim-line-x {
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  top: 50%;
-  height: 2px;
-  transform: translateY(-50%);
-  background: linear-gradient(90deg, #00ffff, #ff00ff);
-}
-.aim-line-y {
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  left: 50%;
-  width: 2px;
-  transform: translateX(-50%);
-  background: linear-gradient(180deg, #00ffff, #ff00ff);
-}
-.aim-dot {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 10px rgba(0, 255, 255, 0.4);
-}
-@keyframes aimPulse {
-  0% { transform: translate3d(var(--aim-x), var(--aim-y), 0) translate(-50%, -50%) scale(1) }
-  50% { transform: translate3d(var(--aim-x), var(--aim-y), 0) translate(-50%, -50%) scale(1.18) }
-  100% { transform: translate3d(var(--aim-x), var(--aim-y), 0) translate(-50%, -50%) scale(1) }
-}
-.aim-cursor.fire { animation: aimPulse 180ms ease-out; }
-
-/* Cursor: hide on desktop, show on inputs */
-.App { cursor: none; }
-input, textarea { cursor: text; }
-a, button { cursor: pointer; }
-
-/* Hide custom cursor on touch devices */
-@media (max-width: 768px), (pointer: coarse) {
-  .aim-cursor { display: none; }
-  .App { cursor: auto; }
 }

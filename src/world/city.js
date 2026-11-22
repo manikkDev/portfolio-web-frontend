@@ -112,7 +112,7 @@ const VERTEX = /* glsl */ `
   uniform float uScroll, uReveal, uTime, uMagnet;
   uniform vec3 uEye;
   uniform vec3 uMagnetDir[3];   // where the cursor points: now, a moment ago, a while ago
-  uniform vec4 uBlast;          // direction of the last click and when it happened
+  uniform vec4 uBlast[8];       // recent clicks: direction from the eye and when each happened
   varying vec4 vWall;     // window bay, floor, distance along the wall, distance to the wall's nearer end
   varying vec4 vRoof;     // position on the tier (x, z) and its half size
   flat varying vec4 vInfo; // tower seed, kind, 1 on an outside face, how loose the block is (flat: it seeds random choices)
@@ -153,13 +153,29 @@ const VERTEX = /* glsl */ `
     vec3 away = normalize(off + scatter * reach * 0.6);
     vec3 drift = (away * (0.45 + aRand.y * 1.0) + dir * (aRand.z - 0.3) * 0.7 + vec3(0.0, 0.3, 0.0)) * pull * along * PUSH;
 
-    // a click: a burst that spreads outward and dies away
-    float bAlong = max(dot(rel, uBlast.xyz), 0.001);
-    vec3 bOff = rel - uBlast.xyz * bAlong;
-    float bSpread = length(bOff) / bAlong;
-    float age = (uTime - uBlast.w - bSpread * 0.7 - aRand.z * 0.12) * 5.0;
-    float burst = age > 0.0 ? age * exp(1.0 - age) * smoothstep(0.5, 0.0, bSpread) : 0.0;
-    drift += normalize(bOff + scatter * bAlong * 0.2) * burst * bAlong * 0.15;
+    // clicks: each sends a burst that spreads outward and dies away. Eight play at once, so a
+    // quick second click adds a burst on top of the first instead of restarting it.
+    vec3 bDrift = vec3(0.0);
+    float burst = 0.0;
+    float bSum = 0.0;
+    float blasted = 0.0;
+    for (int i = 0; i < 8; i++) {
+      vec4 b = uBlast[i];
+      float since = uTime - b.w;
+      if (since < 0.0 || since > 2.6) continue;   // finished (the same for every block, so cheap)
+      float bAlong = max(dot(rel, b.xyz), 0.001);
+      vec3 bOff = rel - b.xyz * bAlong;
+      float bSpread = length(bOff) / bAlong;
+      float age = (since - bSpread * 0.7 - aRand.z * 0.12) * 5.0;
+      float k = age > 0.0 ? age * exp(1.0 - age) * smoothstep(0.5, 0.0, bSpread) : 0.0;
+      bDrift += normalize(bOff + scatter * bAlong * 0.2) * k * bAlong * 0.15;
+      bSum += k;
+      burst = max(burst, k);
+      blasted += step(bSpread, 0.55);
+    }
+    // overlapping bursts add up, with diminishing returns, so a flurry of clicks pushes the
+    // blocks a little further each time instead of flinging them across the city
+    drift += bDrift * (bSum > 1.0 ? (1.0 + log(bSum)) / bSum : 1.0);
 
     float loose = max(max(pull, burst), 0.0) * aRand.w;
     drift *= aRand.w;
@@ -199,7 +215,7 @@ const VERTEX = /* glsl */ `
     // Faces between neighbouring blocks can only be seen once something nearby has moved.
     // Everywhere else they are thrown away here, which is most of the city most of the time.
     float stirred = (reachOf(rel, uMagnetDir[0]) + reachOf(rel, uMagnetDir[1]) + reachOf(rel, uMagnetDir[2])) * uMagnet
-      + step(bSpread, 0.55) * step(0.0, uTime - uBlast.w) * step(uTime - uBlast.w, 2.6)
+      + blasted
       + step(uReveal, 0.999);
     if (outside < 0.5 && (stirred <= 0.0 || aRand.w < 0.5)) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
   }

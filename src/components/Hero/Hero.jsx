@@ -204,14 +204,14 @@ const Hero = ({ world, introDone = true }) => {
     e.currentTarget.style.setProperty('--tilt-y', 0);
   };
 
-  // A click on the gamepad spins it; anywhere else the towers nearby jump and a ring of
-  // light crosses the floor.
+  // A click on the gamepad spins it; anywhere else the towers that way burst apart and a ring
+  // of light spreads across the floor.
   const onClick = (e) => {
     if (!use3d || e.target.closest('a, button')) return;
     const pad = padSlotRef.current?.getBoundingClientRect();
     const onPad = pad && e.clientX > pad.left && e.clientX < pad.right && e.clientY > pad.top && e.clientY < pad.bottom;
     if (onPad) scene.spinPad();
-    else scene.ripple(e.clientX, e.clientY);
+    else scene.click(e.clientX, e.clientY);
   };
 
   return (
@@ -264,13 +264,15 @@ const Hero = ({ world, introDone = true }) => {
             {/* The 3D gamepad is drawn by the world scene on top of this slot. */}
             {use3d && (
               <div className="hero-pad" aria-hidden="true">
-                <div className="hero-pad-slot" ref={padSlotRef}></div>
+                <div className="hero-pad-slot" ref={padSlotRef} data-cursor="spin"></div>
                 <p className="hero-pad-hint">
                   <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>move</span>
                   <kbd>I</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd><span>press</span>
                 </p>
                 <p className="hero-pad-hint">
                   <kbd>Cursor</kbd><span>pulls the city apart</span>
+                </p>
+                <p className="hero-pad-hint">
                   <kbd>Click</kbd><span>pulse</span>
                 </p>
               </div>

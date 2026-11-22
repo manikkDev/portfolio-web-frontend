@@ -23,8 +23,8 @@ const VERTEX = /* glsl */ `
 const FRAGMENT = /* glsl */ `
   uniform sampler2D tDiffuse, uNoise;
   uniform float uScroll, uReveal, uTime, uDim, uMirror;
-  uniform vec4 uRipple;   // x, z (in road coordinates), start time, strength
-  uniform vec3 uCursor;   // x, z where the cursor points at the floor, strength
+  uniform vec4 uRipple[4]; // recent clicks on the floor: x, z (in road coordinates), start time, strength
+  uniform vec3 uCursor;    // x, z where the cursor points at the floor, strength
   uniform vec3 uCyan, uMagenta, uFog;
   varying vec4 vMirror;
   varying vec3 vWorld;
@@ -97,14 +97,22 @@ const FRAGMENT = /* glsl */ `
 
     col = haze(col, vWorld, uFog * uDim);
 
-    // a click sends a ring of light racing outward across the street (never dimmed)
-    float age = uTime - uRipple.z;
-    float wave = smoothstep(2.4, 0.0, abs(distance(p, uRipple.xy) - age * 30.0));
-    float tiles = smoothstep(0.44, 0.5, max(tile.x, tile.y)) + smoothstep(0.47, 0.5, max(plate.x, plate.y));
-    col += mix(uCyan, vec3(1.0), 0.4) * wave * exp(-age * 1.6) * step(0.0, age) * uRipple.w * (0.35 + 0.9 * tiles + 0.5 * puddle);
-    // and the street lights up under the cursor
-    float under = smoothstep(10.0, 0.0, distance(vWorld.xz, uCursor.xy)) * uCursor.z;
-    col += mix(uCyan, uMagenta, 0.35) * under * (0.03 + 0.28 * tiles + 0.2 * wet * fresnel);
+    // a click on the floor sends a ring of light spreading slowly outward across the street
+    // (never dimmed); four can be on their way at once, so a fast click never cuts one off
+    for (int i = 0; i < 4; i++) {
+      vec4 r = uRipple[i];
+      float age = uTime - r.z;
+      if (age < 0.0 || age > 4.0) continue;
+      float front = abs(distance(p, r.xy) - age * 11.0);
+      float wave = smoothstep(1.8, 0.0, front) + smoothstep(5.0, 0.0, front) * 0.35;
+      col += mix(uCyan, vec3(1.0), 0.35) * wave * exp(-age * 1.1) * r.w * (0.3 + 0.5 * puddle + 0.4 * wet * fresnel);
+    }
+
+    // under the cursor: a soft pool of neon light on the wet asphalt, strongest where it is
+    // wettest, with the raindrops glinting in it
+    vec2 toCursor = vWorld.xz - uCursor.xy;
+    float pool = exp(-dot(toCursor, toCursor) * 0.05) * uCursor.z;
+    col += mix(uCyan, uMagenta, 0.4) * pool * (0.03 + 0.26 * wet * fresnel + 0.14 * puddle) + vec3(0.7, 0.95, 1.0) * ring * pool * 0.8;
 
     gl_FragColor = vec4(col * smoothstep(0.0, 0.5, uReveal), 1.0);
   }

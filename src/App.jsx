@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import './App.css'
 import About from './components/About/About'
+import Cursor from './components/Cursor/Cursor'
 import GameIntro from './components/GameIntro/GameIntro'
 import Hero from './components/Hero/Hero'
 import LazySection from './components/LazySection'
@@ -39,9 +40,6 @@ function App() {
   const stageRef = useRef(null)
   const [startedWithIntro] = useState(introVisible)
   const world = useWorld(stageRef, startedWithIntro)
-  const aimRef = useRef(null)
-  const posRef = useRef({ x: -100, y: -100 })
-  const rafRef = useRef(null)
 
   const leaveIntro = () => {
     setIntroLeaving(true)
@@ -57,51 +55,11 @@ function App() {
     setIntroVisible(false)
   }
 
-  useEffect(() => {
-    if (aimRef.current) {
-      aimRef.current.style.setProperty('--aim-x', window.innerWidth / 2 + 'px')
-      aimRef.current.style.setProperty('--aim-y', window.innerHeight / 2 + 'px')
-    }
-  }, [])
-
-  useEffect(() => {
-    const move = (e) => {
-      posRef.current.x = e.clientX
-      posRef.current.y = e.clientY
-      if (!rafRef.current) {
-        rafRef.current = requestAnimationFrame(() => {
-          rafRef.current = null
-          if (aimRef.current) {
-            aimRef.current.style.setProperty('--aim-x', posRef.current.x + 'px')
-            aimRef.current.style.setProperty('--aim-y', posRef.current.y + 'px')
-          }
-        })
-      }
-    }
-    const down = () => {
-      if (aimRef.current) {
-        aimRef.current.classList.add('fire')
-        setTimeout(() => aimRef.current && aimRef.current.classList.remove('fire'), 180)
-      }
-    }
-    document.addEventListener('mousemove', move)
-    document.addEventListener('mousedown', down)
-    return () => {
-      document.removeEventListener('mousemove', move)
-      document.removeEventListener('mousedown', down)
-    }
-  }, [])
-
   return (
     <ThemeProvider>
       <div className={`App${introVisible && !introLeaving ? ' intro-active' : ''}${introLeaving ? ' intro-leaving' : ''}`}>
         <div className="world-stage" ref={stageRef} aria-hidden="true" />
-        <div ref={aimRef} className="aim-cursor">
-          <div className="aim-ring"></div>
-          <div className="aim-line-x"></div>
-          <div className="aim-line-y"></div>
-          <div className="aim-dot"></div>
-        </div>
+        <Cursor />
         {introVisible && <GameIntro world={world} onLeave={leaveIntro} onEnter={closeIntro} />}
         <Navbar />
         <Hero world={world} introDone={!introVisible || introLeaving} />
